@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RHoo! &middot; Sistema de Recursos Humanos</title>
+<meta name="theme-color" content="#0D1321">
+<link rel="icon" href="img/favicon.ico">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RHoo! · Sistema de diseño
+   Turquesa #2EC4B6 accion · Coral #F4795B atencion
+   Neutros tintados al azul institucional: un gris puro junto a
+   una marca de color se ve sucio.
+   ═══════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#2EC4B6; --brand-h:#26A69A; --brand-p:#1E8A80;
+  --brand-s:#E6F7F5; --brand-b:#A8E4DE;
+  --acento:#F4795B; --acento-s:#FEEDE8;
+  --tinta:#0D1321; --tinta-2:#1A2234; --tinta-3:#243049;
+  --fondo:#F7FAFA; --panel:#FFF; --linea:#E4EAEA; --linea-s:#F0F4F4;
+  --txt:#0D1321; --txt-2:#4A5568; --txt-3:#8494A7;
+  --ok:#14A085; --alerta:#D97706; --error:#DC2626;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px;
+  --s-sm:0 1px 2px rgba(13,19,33,.05);
+  --s-md:0 4px 16px rgba(13,19,33,.06);
+  --s-lg:0 12px 40px rgba(13,19,33,.12);
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --nav-w:248px;
+}
+html,body{height:100%}
+body{
+  font-family:'Nunito',system-ui,-apple-system,sans-serif;
+  background:var(--fondo); color:var(--txt);
+  -webkit-font-smoothing:antialiased;
+}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── LOGIN ────────────────────────────────────────────────── */
+/* Oscuro completo: es la unica pantalla donde la marca manda,
+   segun el manual. El interior de la app va claro porque RH pasa
+   horas leyendo tablas. */
+#login{
+  position:fixed; inset:0; z-index:300;
+  background:var(--tinta);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+}
+#login::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 45% at 12% 0%, rgba(46,196,182,.10), transparent 55%),
+    radial-gradient(ellipse 45% 55% at 88% 100%, rgba(244,121,91,.07), transparent 55%);
+}
+.lg-card{position:relative; width:100%; max-width:392px; animation:sube .5s var(--ease) both}
+@keyframes sube{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.lg-marca{text-align:center; margin-bottom:32px}
+.lg-marca img{height:64px; width:auto; margin:0 auto 4px; display:block}
+.lg-marca p{font-size:.72rem; color:rgba(255,255,255,.42); letter-spacing:.14em; text-transform:uppercase}
+.lg-panel{
+  background:var(--tinta-2); border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--r-xl); padding:30px 26px;
+}
+.lg-panel h1{font-size:1.18rem; font-weight:800; color:#fff; margin-bottom:3px}
+.lg-panel > p{font-size:.83rem; color:rgba(255,255,255,.45); margin-bottom:24px}
+.campo{margin-bottom:15px}
+.campo label{
+  display:block; font-size:.68rem; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:rgba(255,255,255,.5); margin-bottom:6px;
+}
+/* display:block y no flex. En Prisma el ojo de la contrasena se
+   salia de la caja porque el wrapper era flex y el input tenia
+   width:100%: eran hermanos y el input empujaba al boton. */
+.campo-pass{position:relative; display:block}
+.campo input{
+  width:100%; background:var(--tinta-3); color:#fff;
+  border:1.5px solid rgba(255,255,255,.10); border-radius:var(--r-md);
+  padding:12px 14px; font-size:.92rem; font-family:inherit;
+  transition:border-color .18s, background-color .18s;
+}
+.campo-pass input{padding-right:46px}
+.campo input:focus{outline:none; border-color:var(--brand); background:#2A3752}
+.campo input::placeholder{color:rgba(255,255,255,.26)}
+.ojo{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; cursor:pointer; border-radius:8px;
+  color:rgba(255,255,255,.38); font-size:.86rem; transition:color .18s;
+}
+.ojo:hover{color:var(--brand)}
+.btn-lg{
+  width:100%; margin-top:8px; background:var(--brand); color:#062A26;
+  font-family:inherit; font-size:.94rem; font-weight:800;
+  border:none; border-radius:var(--r-md); padding:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  transition:background-color .18s, transform .12s;
+}
+.btn-lg:hover{background:#3AD4C6}
+.btn-lg:active{transform:scale(.99)}
+.btn-lg:disabled{opacity:.45; cursor:not-allowed; transform:none}
+.lg-err{
+  display:none; align-items:flex-start; gap:8px;
+  background:rgba(220,38,38,.12); border:1px solid rgba(220,38,38,.30);
+  border-radius:var(--r-sm); padding:10px 12px; margin-bottom:16px;
+  font-size:.81rem; color:#FCA5A5; line-height:1.45;
+}
+.lg-err.on{display:flex}
+.lg-pie{margin-top:20px; text-align:center; font-size:.72rem; color:rgba(255,255,255,.28)}
+
+/* ── APP ──────────────────────────────────────────────────── */
+#app{display:none; min-height:100%}
+#app.on{display:block}
+
+#nav{
+  position:fixed; inset:0 auto 0 0; width:var(--nav-w); z-index:100;
+  background:var(--tinta); display:flex; flex-direction:column;
+  transition:transform .3s var(--ease);
+}
+#nav::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 70% 30% at 0% 0%, rgba(46,196,182,.07), transparent 60%);
+}
+.nav-top{
+  position:relative; z-index:1; padding:20px 18px 16px;
+  display:flex; align-items:center; gap:10px;
+}
+.nav-top img{height:34px; width:auto}
+.nav-scroll{position:relative; z-index:1; flex:1; overflow-y:auto; padding:4px 10px 16px}
+.nav-grupo{margin-bottom:18px}
+.nav-grupo > h3{
+  font-size:.62rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase;
+  color:rgba(255,255,255,.28); padding:0 8px; margin-bottom:6px;
+}
+.nav-btn{
+  width:100%; display:flex; align-items:center; gap:11px;
+  padding:9px 10px; margin-bottom:1px;
+  background:none; border:none; cursor:pointer;
+  font-family:inherit; font-size:.86rem; font-weight:600;
+  color:rgba(255,255,255,.62); border-radius:var(--r-sm);
+  text-align:left; transition:background-color .15s, color .15s;
+}
+.nav-btn i{width:17px; font-size:.86rem; text-align:center; flex-shrink:0}
+.nav-btn:hover{background:rgba(255,255,255,.05); color:#fff}
+/* Activo: fondo turquesa translucido, sin franja lateral */
+.nav-btn.on{background:rgba(46,196,182,.15); color:var(--brand)}
+.nav-pie{
+  position:relative; z-index:1; padding:12px;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+.nav-user{display:flex; align-items:center; gap:10px; padding:6px 4px}
+.avatar{
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  background:var(--brand); color:#062A26;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; font-weight:800;
+}
+.nav-user div{min-width:0; flex:1}
+.nav-user b{display:block; font-size:.81rem; color:#fff; font-weight:700;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.nav-user span{display:block; font-size:.68rem; color:rgba(255,255,255,.40);
+  text-transform:capitalize}
+.btn-salir{
+  width:100%; margin-top:6px; padding:8px;
+  background:none; border:1px solid rgba(255,255,255,.10); border-radius:var(--r-sm);
+  color:rgba(255,255,255,.55); font-family:inherit; font-size:.78rem; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
+  transition:border-color .18s, color .18s;
+}
+.btn-salir:hover{border-color:rgba(220,38,38,.4); color:#FCA5A5}
+
+#velo{
+  display:none; position:fixed; inset:0; z-index:90;
+  background:rgba(13,19,33,.5); backdrop-filter:blur(2px);
+}
+#velo.on{display:block}
+
+#lienzo{margin-left:var(--nav-w); min-height:100vh; display:flex; flex-direction:column}
+#barra{
+  position:sticky; top:0; z-index:50;
+  background:rgba(255,255,255,.88); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--linea);
+  padding:0 22px; height:60px; display:flex; align-items:center; gap:14px;
+}
+#hamb{display:none; background:none; border:none; cursor:pointer;
+  color:var(--txt-2); font-size:1.05rem; padding:6px}
+#barra h2{flex:1; font-size:1.02rem; font-weight:800}
+.barra-tenant{
+  font-size:.72rem; font-weight:700; color:var(--txt-3);
+  padding:5px 11px; background:var(--linea-s); border-radius:99px;
+}
+main{flex:1; padding:24px 22px 60px}
+
+/* Estado vacío: honesto sobre lo que falta, en lugar de una
+   pantalla en blanco que parece un error. */
+.vacio{
+  max-width:440px; margin:64px auto; text-align:center;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-xl); padding:44px 30px; box-shadow:var(--s-sm);
+}
+.vacio i{font-size:2rem; color:var(--brand-b); margin-bottom:14px; display:block}
+.vacio h3{font-size:1.02rem; font-weight:800; margin-bottom:7px}
+.vacio p{font-size:.86rem; color:var(--txt-2); line-height:1.6}
+.vacio code{
+  font-size:.78rem; background:var(--brand-s); color:var(--brand-p);
+  padding:2px 6px; border-radius:5px;
+}
+
+#carga{
+  position:fixed; inset:0; z-index:400; background:var(--tinta);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+}
+#carga.off{display:none}
+#carga img{height:52px; animation:pulso 1.6s ease-in-out infinite}
+@keyframes pulso{0%,100%{opacity:.5}50%{opacity:1}}
+#carga p{font-size:.8rem; color:rgba(255,255,255,.4)}
+
+@media(max-width:900px){
+  #nav{transform:translateX(-100%); box-shadow:var(--s-lg)}
+  #nav.on{transform:none}
+  #lienzo{margin-left:0}
+  #hamb{display:block}
+  main{padding:18px 14px 48px}
+  #barra{padding:0 14px}
+  .barra-tenant{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Pantalla de arranque: evita el parpadeo de login mientras
+     Supabase revisa si ya hay sesion guardada -->
+<div id="carga">
+  <img src="img/logo-isotipo.svg" alt="RHoo!">
+  <p>Cargando...</p>
+</div>
+
+<!-- ── LOGIN ── -->
+<div id="login" style="display:none">
+  <div class="lg-card">
+    <div class="lg-marca">
+      <img src="img/logo-completo.svg" alt="RHoo! Sistema de Recursos Humanos">
+    </div>
+    <div class="lg-panel">
+      <h1>Bienvenido</h1>
+      <p>Ingresa con tu cuenta para continuar</p>
+
+      <div class="lg-err" id="lg-err">
+        <i class="fas fa-circle-exclamation" style="margin-top:2px"></i>
+        <span id="lg-err-txt"></span>
+      </div>
+
+      <form id="lg-form" autocomplete="on">
+        <div class="campo">
+          <label for="lg-mail">Correo</label>
+          <input type="email" id="lg-mail" placeholder="tu@empresa.com"
+                 autocomplete="username" required>
+        </div>
+        <div class="campo">
+          <label for="lg-pass">Contrase&ntilde;a</label>
+          <span class="campo-pass">
+            <input type="password" id="lg-pass" placeholder="Tu contrase&ntilde;a"
+                   autocomplete="current-password" required>
+            <button type="button" class="ojo" id="lg-ojo"
+                    aria-label="Mostrar contrase&ntilde;a">
+              <i class="fas fa-eye"></i>
+            </button>
+          </span>
+        </div>
+        <button type="submit" class="btn-lg" id="lg-btn">
+          <i class="fas fa-arrow-right-to-bracket" style="font-size:.82rem"></i>
+          Entrar
+        </button>
+      </form>
+    </div>
+    <p class="lg-pie">RHoo! <span id="lg-ver"></span></p>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <div id="velo" onclick="cerrarNav()"></div>
+
+  <nav id="nav">
+    <div class="nav-top">
+      <img src="img/logo-completo.svg" alt="RHoo!">
+    </div>
+    <div class="nav-scroll" id="nav-items"></div>
+    <div class="nav-pie">
+      <div class="nav-user">
+        <span class="avatar" id="u-ini">?</span>
+        <div>
+          <b id="u-nom">&mdash;</b>
+          <span id="u-rol">&mdash;</span>
+        </div>
+      </div>
+      <button class="btn-salir" onclick="salir()">
+        <i class="fas fa-power-off" style="font-size:.72rem"></i> Cerrar sesi&oacute;n
+      </button>
+    </div>
+  </nav>
+
+  <div id="lienzo">
+    <header id="barra">
+      <button id="hamb" onclick="abrirNav()" aria-label="Men&uacute;">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h2 id="titulo">Inicio</h2>
+      <span class="barra-tenant" id="b-tenant"></span>
+    </header>
+    <main id="contenido"></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   RHoo! · Shell
+   ═══════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+
+/* Catálogo de módulos. `roles` es solo para pintar el menú: la
+   seguridad de verdad está en RLS. Si alguien fabrica el botón a
+   mano, la base no le devuelve nada ajeno. */
+const MODULOS = [
+  { grupo:'Operación', items:[
+    { id:'inicio',     nombre:'Inicio',      icono:'fa-chart-pie',      roles:'*' },
+    { id:'asistencia', nombre:'Asistencia',  icono:'fa-fingerprint',    roles:'*' },
+    { id:'incidencias',nombre:'Incidencias', icono:'fa-calendar-check', roles:'*' },
+    { id:'vacaciones', nombre:'Vacaciones',  icono:'fa-umbrella-beach', roles:'*' }
+  ]},
+  { grupo:'Personal', items:[
+    { id:'empleados',  nombre:'Empleados',   icono:'fa-users',          roles:'jefe' },
+    { id:'turnos',     nombre:'Turnos',      icono:'fa-clock-rotate-left', roles:'admin' },
+    { id:'nom035',     nombre:'NOM-035',     icono:'fa-shield-halved',  roles:'admin' }
+  ]},
+  { grupo:'Administración', items:[
+    { id:'config',     nombre:'Configuraci&oacute;n', icono:'fa-sliders', roles:'admin' },
+    { id:'usuarios',   nombre:'Usuarios',    icono:'fa-user-gear',      roles:'admin' }
+  ]}
+];
+
+let moduloActivo = 'inicio';
+
+function puedeVer(roles){
+  if(roles === '*')     return true;
+  if(roles === 'jefe')  return Sesion.esJefe;
+  if(roles === 'admin') return Sesion.esAdmin;
+  return false;
+}
+
+function pintarNav(){
+  $('nav-items').innerHTML = MODULOS.map(g => {
+    const vis = g.items.filter(m => puedeVer(m.roles));
+    if(!vis.length) return '';       // grupo sin permisos: no se pinta el titulo
+    return '<div class="nav-grupo"><h3>'+g.grupo+'</h3>'
+      + vis.map(m =>
+          '<button class="nav-btn'+(m.id===moduloActivo?' on':'')+'" '
+          + 'data-mod="'+m.id+'" onclick="irA(\''+m.id+'\')">'
+          + '<i class="fas '+m.icono+'"></i>'+m.nombre+'</button>'
+        ).join('')
+      + '</div>';
+  }).join('');
+}
+
+function irA(id){
+  moduloActivo = id;
+  pintarNav();
+  const m = MODULOS.flatMap(g=>g.items).find(x=>x.id===id);
+  $('titulo').innerHTML = m ? m.nombre : id;
+  if(window.innerWidth < 900) cerrarNav();
+  pintarModulo(id);
+}
+
+/* Los módulos aún no existen. Se dice qué falta en lugar de
+   dejar la pantalla en blanco, que se lee como un error. */
+function pintarModulo(id){
+  $('contenido').innerHTML =
+    '<div class="vacio">'
+    + '<i class="fas fa-drafting-compass"></i>'
+    + '<h3>M&oacute;dulo en construcci&oacute;n</h3>'
+    + '<p>Las tablas de <code>'+id+'</code> ya existen en la base '
+    + 'con RLS activo. Falta la interfaz.</p></div>';
+}
+
+function abrirNav(){ $('nav').classList.add('on'); $('velo').classList.add('on') }
+function cerrarNav(){ $('nav').classList.remove('on'); $('velo').classList.remove('on') }
+
+function iniciales(nom){
+  return (nom||'?').trim().split(/\s+/).slice(0,2)
+         .map(p=>p[0]).join('').toUpperCase();
+}
+
+/* ── Autenticación ── */
+
+function errLogin(msg){
+  $('lg-err-txt').textContent = msg;
+  $('lg-err').classList.add('on');
+}
+
+$('lg-ojo').addEventListener('click', () => {
+  const i = $('lg-pass');
+  const mostrar = i.type === 'password';
+  i.type = mostrar ? 'text' : 'password';
+  $('lg-ojo').innerHTML = '<i class="fas fa-eye'+(mostrar?'-slash':'')+'"></i>';
+  i.focus();
+});
+
+$('lg-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('lg-err').classList.remove('on');
+  const btn = $('lg-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+
+  const { error } = await sb.auth.signInWithPassword({
+    email: $('lg-mail').value.trim(),
+    password: $('lg-pass').value
+  });
+
+  if(error){
+    // Mensaje propio: "Invalid login credentials" no le dice nada
+    // a nadie, y traducirlo literal suena a máquina.
+    errLogin(error.message.includes('Invalid')
+      ? 'Correo o contrase\u00f1a incorrectos.'
+      : 'No se pudo iniciar sesi\u00f3n. Revisa tu conexi\u00f3n.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket" style="font-size:.82rem"></i> Entrar';
+    return;
+  }
+  // El listener de onAuthStateChange se encarga del resto
+});
+
+async function salir(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+/* Carga perfil y tenant. Sin perfil no hay nada que mostrar:
+   RLS bloquea todo porque app.mi_tenant() devuelve NULL. Es el
+   comportamiento correcto, pero hay que explicarlo. */
+async function cargarSesion(user){
+  Sesion.user = user;
+
+  const { data: perfil, error } = await sb
+    .from('perfiles')
+    .select('id, tenant_id, rol, nombre, email, empleado_id')
+    .eq('id', user.id)
+    .single();
+
+  if(error || !perfil){
+    $('carga').classList.add('off');
+    $('login').style.display = 'flex';
+    errLogin('Tu cuenta no tiene un perfil asignado. Contacta al administrador.');
+    await sb.auth.signOut();
+    return;
+  }
+  Sesion.perfil = perfil;
+
+  const { data: tenant } = await sb
+    .from('tenants')
+    .select('id, slug, nombre, plan')
+    .eq('id', perfil.tenant_id)
+    .single();
+  Sesion.tenant = tenant;
+
+  $('u-ini').textContent  = iniciales(perfil.nombre);
+  $('u-nom').textContent  = perfil.nombre;
+  $('u-rol').textContent  = perfil.rol;
+  // El proveedor no necesita ver su propio nombre: lo que le
+  // sirve es saber en qué cliente está trabajando. Cuando
+  // exista el selector de tenant, aquí va el cliente activo.
+  $('b-tenant').textContent = Sesion.rol === 'superadmin'
+    ? 'Proveedor'
+    : (tenant?.nombre || '');
+
+  $('login').style.display = 'none';
+  $('app').classList.add('on');
+  $('carga').classList.add('off');
+
+  pintarNav();
+  irA('inicio');
+}
+
+/* Un solo listener maneja arranque, login y logout: Supabase
+   dispara INITIAL_SESSION al cargar si ya habia sesion guardada,
+   así que no hace falta revisar el token a mano. */
+sb.auth.onAuthStateChange((evento, sesion) => {
+  if(sesion?.user){
+    if(!Sesion.perfil) cargarSesion(sesion.user);
+  } else {
+    Sesion.user = Sesion.perfil = Sesion.tenant = null;
+    $('app').classList.remove('on');
+    $('login').style.display = 'flex';
+    $('carga').classList.add('off');
+  }
+});
+
+$('lg-ver').textContent = 'v' + RHOO.VERSION;
+
+// Red de seguridad: si Supabase no responde en 4 segundos, se
+// muestra el login en lugar de dejar la pantalla de carga fija.
+setTimeout(() => {
+  if(!Sesion.perfil && $('carga') && !$('carga').classList.contains('off')){
+    $('carga').classList.add('off');
+    $('login').style.display = 'flex';
+  }
+}, 4000);
+</script>
+</body>
+</html>
