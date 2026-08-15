@@ -228,6 +228,112 @@ main{flex:1; padding:24px 22px 60px}
   #barra{padding:0 14px}
   .barra-tenant{display:none}
 }
+/* ── Configuración ── */
+.cfg-wrap{max-width:760px}
+.cfg-sec{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:0 22px; margin-bottom:16px;
+}
+.cfg-head{padding:20px 0 4px}
+.cfg-head h3{font-size:.95rem; font-weight:800}
+.cfg-head p{font-size:.8rem; color:var(--txt-2); line-height:1.55; margin-top:5px}
+/* Referencia legal: fondo tintado, sin franja lateral */
+.cfg-ley{
+  display:flex; gap:9px; align-items:flex-start;
+  font-size:.78rem; color:var(--txt-2); line-height:1.55;
+  background:var(--brand-s); border-radius:var(--r-sm);
+  padding:10px 13px; margin:12px 0 4px;
+}
+.cfg-ley i{color:var(--brand-p); margin-top:2px; font-size:.75rem}
+.cfg-fila{
+  display:flex; align-items:flex-start; gap:24px;
+  padding:17px 0; border-top:1px solid var(--linea-s);
+}
+.cfg-fila:first-of-type{border-top:none}
+.cfg-fila.off{opacity:.4; pointer-events:none}
+.cfg-txt{flex:1; min-width:0}
+.cfg-txt label{display:block; font-size:.87rem; font-weight:700; line-height:1.4}
+.cfg-txt p{font-size:.76rem; color:var(--txt-3); line-height:1.5; margin-top:4px}
+.cfg-ctrl{flex-shrink:0; padding-top:2px}
+
+.cfg-num{display:flex; align-items:center; gap:7px}
+.cfg-num input{
+  width:78px; text-align:right; font-variant-numeric:tabular-nums;
+  font-family:inherit; font-size:.88rem; font-weight:700;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  padding:7px 9px; background:var(--panel); color:var(--txt);
+}
+.cfg-num input:focus{outline:none; border-color:var(--brand)}
+.cfg-num span{font-size:.75rem; color:var(--txt-3)}
+
+/* Interruptor. El estado se lee por posición y color a la vez:
+   solo por color, quien no distingue verde de gris no lo sabe. */
+.sw{
+  width:44px; height:25px; border-radius:99px; border:none; cursor:pointer;
+  background:#CBD5D5; position:relative; transition:background-color .2s;
+}
+.sw.on{background:var(--brand)}
+.sw span{
+  position:absolute; top:3px; left:3px; width:19px; height:19px;
+  border-radius:50%; background:#fff; box-shadow:var(--s-sm);
+  transition:transform .2s var(--ease);
+}
+.sw.on span{transform:translateX(19px)}
+
+.cfg-ops{display:flex; flex-direction:column; gap:6px; min-width:270px}
+.cfg-op{
+  display:flex; align-items:flex-start; gap:9px; cursor:pointer;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  padding:9px 12px; font-size:.81rem; color:var(--txt-2);
+  transition:border-color .16s, background-color .16s;
+}
+.cfg-op:hover{border-color:var(--brand-b)}
+.cfg-op.on{border-color:var(--brand); background:var(--brand-s); color:var(--brand-p); font-weight:700}
+.cfg-op input{margin-top:2px; accent-color:var(--brand)}
+
+.cfg-barra{
+  position:fixed; bottom:20px; left:calc(var(--nav-w) + 22px); right:22px;
+  max-width:760px;
+  background:var(--tinta); color:#fff; border-radius:var(--r-md);
+  padding:12px 16px; display:flex; align-items:center; justify-content:space-between;
+  gap:16px; box-shadow:var(--s-lg);
+  transform:translateY(140%); transition:transform .3s var(--ease);
+}
+.cfg-barra.on{transform:none}
+.cfg-barra span{font-size:.8rem; color:rgba(255,255,255,.65)}
+.cfg-barra > div{display:flex; gap:9px}
+.btn-pri, .btn-sec{
+  font-family:inherit; font-size:.82rem; font-weight:700;
+  border-radius:var(--r-sm); padding:9px 15px; cursor:pointer; border:none;
+}
+.btn-pri{background:var(--brand); color:#062A26}
+.btn-pri:hover{background:#3AD4C6}
+.btn-pri:disabled{opacity:.5; cursor:not-allowed}
+.btn-sec{background:rgba(255,255,255,.10); color:rgba(255,255,255,.8)}
+.btn-sec:hover{background:rgba(255,255,255,.18)}
+.cargando{font-size:.85rem; color:var(--txt-3); padding:40px 0; text-align:center}
+
+/* Avisos */
+#toasts{position:fixed; bottom:22px; right:22px; z-index:200;
+  display:flex; flex-direction:column; gap:9px}
+.toast{
+  display:flex; align-items:flex-start; gap:10px; max-width:340px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:13px 15px; box-shadow:var(--s-lg);
+  font-size:.82rem; line-height:1.5;
+  animation:entra .3s var(--ease) both;
+}
+@keyframes entra{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+.toast i{margin-top:2px; flex-shrink:0}
+.toast.ok i{color:var(--ok)}
+.toast.error i{color:var(--error)}
+
+@media(max-width:900px){
+  .cfg-fila{flex-direction:column; gap:11px}
+  .cfg-ctrl{width:100%}
+  .cfg-ops{min-width:0}
+  .cfg-barra{left:14px; right:14px; bottom:14px}
+}   
 </style>
 </head>
 <body>
@@ -314,10 +420,12 @@ main{flex:1; padding:24px 22px 60px}
     </header>
     <main id="contenido"></main>
   </div>
+  <div id="toasts"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/modulos/config.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
    RHoo! · Shell
@@ -379,7 +487,33 @@ function irA(id){
 
 /* Los módulos aún no existen. Se dice qué falta en lugar de
    dejar la pantalla en blanco, que se lee como un error. */
+/* Avisos breves. Se van solos: un aviso de exito que exige un
+   clic para cerrarse es una interrupcion, no una confirmacion. */
+function toast(tipo, msg){
+  const cont = $('toasts');
+  if(!cont) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + tipo;
+  el.innerHTML = '<i class="fas fa-'
+    + (tipo === 'ok' ? 'circle-check' : 'circle-exclamation')
+    + '"></i><span>' + msg + '</span>';
+  cont.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .3s, transform .3s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(24px)';
+    setTimeout(() => el.remove(), 320);
+  }, tipo === 'error' ? 6000 : 3000);
+}
+
+/* Registro de módulos. Cada uno expone una función que pinta en
+   #contenido; los que aún no existen caen al estado vacío. */
+const RUTAS = {
+  config: () => moduloConfig()
+};
+
 function pintarModulo(id){
+  if(RUTAS[id]) { RUTAS[id](); return; }
   $('contenido').innerHTML =
     '<div class="vacio">'
     + '<i class="fas fa-drafting-compass"></i>'
