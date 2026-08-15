@@ -95,6 +95,25 @@ const CFG_SECCIONES = [
     ]
   },
   {
+    id: 'checadores',
+    titulo: 'Checadores físicos',
+    ayuda: 'Los dispositivos se registran uno por uno en Asistencia. Aquí van solo las reglas generales.',
+    campos: [
+      { k:'metodo_checada_default', t:'opc',
+        opciones:[
+          ['ambos','Checador o celular, según convenga'],
+          ['dispositivo','Solo en el checador del centro'],
+          ['movil','Solo desde el celular'],
+          ['ninguno','No registran asistencia']
+        ],
+        label:'Método para empleados nuevos',
+        nota:'Se cambia por persona: los foráneos y el personal REPSE casi siempre son la excepción.' },
+      { k:'dispositivo_alerta_horas', t:'num', min:1, max:72, sufijo:'horas',
+        label:'Avisar si un checador deja de reportar',
+        nota:'Un reloj desconectado no se nota hasta que falta un día completo de registros.' }
+    ]
+  },
+  {
     id: 'cumplimiento',
     titulo: 'Cumplimiento (NOM-035)',
     ayuda: 'Criterios de la evaluación de riesgo psicosocial.',
