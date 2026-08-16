@@ -436,7 +436,7 @@ async function cargarAsistencia(){
   const { data } = await sb.rpc('mi_dia');
   _miDia = data;
 
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = new Date().toLocaleDateString('sv-SE');
   const admin = Sesion.esJefe;
 
   document.getElementById('contenido').innerHTML =
