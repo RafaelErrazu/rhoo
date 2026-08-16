@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 /* ═══════════════════════════════════════════════════════════
    RHoo! · Sistema de diseño
@@ -333,7 +334,203 @@ main{flex:1; padding:24px 22px 60px}
   .cfg-ctrl{width:100%}
   .cfg-ops{min-width:0}
   .cfg-barra{left:14px; right:14px; bottom:14px}
-}   
+} 
+/* ── Asistencia ── */
+.ck-card{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-xl); padding:24px; max-width:440px; margin-bottom:24px;
+  box-shadow:var(--s-md);
+}
+.ck-card.ck-off{
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--linea-s); border-style:dashed; box-shadow:none;
+}
+.ck-card.ck-off i{color:var(--txt-3); margin-top:3px}
+.ck-card.ck-off p{font-size:.85rem; color:var(--txt-2); line-height:1.55}
+.ck-top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px}
+.ck-hora{font-size:2.6rem; font-weight:900; line-height:1; font-variant-numeric:tabular-nums}
+.ck-fecha{font-size:.8rem; color:var(--txt-3); margin-top:3px; text-transform:capitalize}
+.ck-turno{
+  font-size:.72rem; color:var(--txt-3); text-align:right; line-height:1.5;
+  background:var(--brand-s); padding:7px 11px; border-radius:var(--r-sm);
+}
+.ck-turno b{color:var(--brand-p); font-variant-numeric:tabular-nums}
+.ck-turno.ck-descanso{background:var(--linea-s)}
+.ck-geo{
+  display:flex; align-items:center; gap:7px; margin-top:14px;
+  font-size:.78rem; color:var(--txt-2);
+  background:var(--linea-s); padding:8px 12px; border-radius:var(--r-sm);
+}
+.ck-geo.ok{background:var(--brand-s); color:var(--brand-p); font-weight:600}
+.ck-geo.err{background:#FEF2F2; color:#B91C1C}
+.ck-btn{
+  width:100%; margin-top:16px; padding:16px;
+  background:var(--brand); color:#062A26; border:none; border-radius:var(--r-md);
+  font-family:inherit; font-size:1rem; font-weight:800; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  transition:background-color .18s, transform .12s;
+}
+.ck-btn:hover{background:#3AD4C6}
+.ck-btn:active{transform:scale(.99)}
+.ck-btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+.ck-lista{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+.ck-lista span{
+  font-size:.76rem; color:var(--txt-2); background:var(--linea-s);
+  padding:6px 11px; border-radius:99px; font-variant-numeric:tabular-nums;
+}
+.ck-lista b{color:var(--txt-3); font-weight:700; margin-right:6px}
+.ck-nada{font-size:.79rem; color:var(--txt-3); margin-top:14px; text-align:center}
+.ck-retardo{
+  font-size:.78rem; color:#B45309; background:#FEF3E2;
+  padding:8px 12px; border-radius:var(--r-sm); margin-top:12px;
+}
+
+.asis-barra{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; margin-bottom:18px; flex-wrap:wrap;
+}
+.asis-tabs{display:flex; gap:6px}
+.asis-tab{
+  padding:8px 15px; border-radius:99px; border:none; cursor:pointer;
+  font-family:inherit; font-size:.83rem; font-weight:700;
+  background:var(--linea-s); color:var(--txt-2); transition:all .16s;
+}
+.asis-tab:hover{background:var(--linea)}
+.asis-tab.on{background:var(--brand); color:#062A26}
+#asis-fecha{
+  font-family:inherit; font-size:.83rem; padding:8px 12px;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm); color:var(--txt);
+}
+#asis-fecha:focus{outline:none; border-color:var(--brand)}
+
+.tb-resumen{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px}
+.tb-kpi{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:12px 18px; min-width:96px;
+}
+.tb-kpi b{display:block; font-size:1.6rem; font-weight:900;
+  line-height:1; font-variant-numeric:tabular-nums}
+.tb-kpi span{font-size:.72rem; color:var(--txt-3); font-weight:600}
+
+.tb-tabla{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); overflow:hidden;
+}
+.tb-tabla table{width:100%; border-collapse:collapse}
+.tb-tabla th{
+  text-align:left; font-size:.68rem; font-weight:800; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--txt-3);
+  padding:12px 16px; border-bottom:1px solid var(--linea); white-space:nowrap;
+}
+.tb-tabla td{
+  padding:12px 16px; font-size:.84rem; border-bottom:1px solid var(--linea-s);
+  vertical-align:middle;
+}
+.tb-tabla tr:last-child td{border-bottom:none}
+.tb-tabla tbody tr:hover{background:#F4FAFA}
+.tb-tabla td.num{font-variant-numeric:tabular-nums}
+.tb-sub{display:block; font-size:.72rem; color:var(--txt-3); margin-top:2px}
+.tb-tarde{font-size:.7rem; color:#B45309; font-weight:700; margin-left:5px}
+.tb-badge{
+  display:inline-block; font-size:.72rem; font-weight:700;
+  padding:4px 10px; border-radius:99px; white-space:nowrap;
+}
+
+.aviso{
+  display:flex; gap:9px; align-items:flex-start;
+  font-size:.79rem; color:var(--txt-2); line-height:1.55;
+  background:var(--brand-s); border-radius:var(--r-sm);
+  padding:11px 14px; margin-bottom:16px;
+}
+.aviso i{color:var(--brand-p); margin-top:2px; flex-shrink:0}
+
+.ub-grid{display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start}
+.ub-h{
+  font-size:.7rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--txt-3); margin-bottom:9px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.ub-add{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:.72rem; font-weight:700; color:var(--brand-p);
+  display:flex; align-items:center; gap:5px; text-transform:none; letter-spacing:0;
+}
+.ub-item{
+  width:100%; text-align:left; cursor:pointer; margin-bottom:6px;
+  background:var(--panel); border:1.5px solid var(--linea);
+  border-radius:var(--r-md); padding:11px 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  font-family:inherit; transition:border-color .16s;
+}
+.ub-item:hover{border-color:var(--brand)}
+.ub-item.sin{border-style:dashed}
+.ub-item b{display:block; font-size:.85rem; color:var(--txt)}
+.ub-item span{font-size:.72rem; color:var(--txt-3); text-transform:capitalize}
+.ub-coord{
+  font-size:.7rem !important; color:var(--txt-3); text-align:right;
+  font-variant-numeric:tabular-nums; flex-shrink:0; text-transform:none !important;
+}
+.ub-nada{font-size:.78rem; color:var(--txt-3); line-height:1.55; padding:4px 2px}
+#mapa{
+  height:420px; border-radius:var(--r-lg); border:1px solid var(--linea);
+  z-index:1;
+}
+.ub-tip{font-size:.74rem; color:var(--txt-3); margin-top:8px; text-align:center}
+.ub-editor{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:16px; margin-top:12px;
+}
+.ub-editor p b{font-size:.88rem}
+.ub-editor label{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; font-size:.82rem; font-weight:700; margin:12px 0;
+}
+.ub-nota{font-size:.74rem; color:var(--txt-3); line-height:1.5; margin-bottom:12px}
+
+.dv-top{display:flex; gap:16px; align-items:flex-start; margin-bottom:18px}
+.dv-top .aviso{flex:1}
+.dv-lista{display:flex; flex-direction:column; gap:8px}
+.dv-item{
+  display:flex; align-items:center; gap:14px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:14px 16px;
+}
+.dv-ico{
+  width:38px; height:38px; border-radius:var(--r-sm); flex-shrink:0;
+  background:var(--brand-s); color:var(--brand-p);
+  display:flex; align-items:center; justify-content:center;
+}
+.dv-ico.off{background:var(--linea-s); color:var(--txt-3)}
+.dv-info{flex:1; min-width:0}
+.dv-info b{display:block; font-size:.87rem}
+.dv-info span{font-size:.73rem; color:var(--txt-3)}
+.dv-est{
+  font-size:.73rem; font-weight:700; color:var(--ok);
+  background:#E3F5F0; padding:5px 11px; border-radius:99px; flex-shrink:0;
+}
+.dv-est.frio{color:var(--error); background:#FEF2F2}
+
+@media(max-width:900px){
+  .ub-grid{grid-template-columns:1fr}
+  #mapa{height:320px}
+  .dv-top{flex-direction:column}
+  /* La tabla se vuelve tarjetas: una tabla de 6 columnas en un
+     celular obliga a desplazarse a los lados para leer un renglon. */
+  .tb-tabla thead{display:none}
+  .tb-tabla tr{display:block; padding:12px 14px; border-bottom:1px solid var(--linea-s)}
+  .tb-tabla td{
+    display:flex; justify-content:space-between; gap:14px;
+    padding:4px 0; border:none; font-size:.82rem;
+  }
+  .tb-tabla td::before{
+    content:attr(data-l); font-size:.7rem; font-weight:700;
+    color:var(--txt-3); text-transform:uppercase; letter-spacing:.05em;
+  }
+  .tb-tabla td:first-child{
+    flex-direction:column; align-items:flex-start; gap:0; margin-bottom:6px;
+  }
+  .tb-tabla td:first-child::before{display:none}
+}  
 </style>
 </head>
 <body>
@@ -425,7 +622,9 @@ main{flex:1; padding:24px 22px 60px}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/modulos/config.js"></script>
+<script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
    RHoo! · Shell
@@ -509,7 +708,8 @@ function toast(tipo, msg){
 /* Registro de módulos. Cada uno expone una función que pinta en
    #contenido; los que aún no existen caen al estado vacío. */
 const RUTAS = {
-  config: () => moduloConfig()
+  config:     () => moduloConfig(),
+  asistencia: () => moduloAsistencia()
 };
 
 function pintarModulo(id){
