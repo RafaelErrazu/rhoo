@@ -10,7 +10,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // El modelo vive aqui, no en el frontend: cambiarlo es editar
 // esta linea y redesplegar, sin que nadie actualice la PWA.
-const MODELO = 'gemini-2.0-flash';
+const MODELO = 'gemini-flash-latest';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
