@@ -67,13 +67,26 @@ Deno.serve(async (req) => {
 
     const { data: doc, error: eDoc } = await sb
       .from('documentos')
-      .select('id, ruta, mime, tipo_id, tipos_documento(clave, campos_ocr)')
+      .select('id, ruta, mime, tipo_id')
       .eq('id', documento_id)
       .single();
-    if (eDoc || !doc) throw new Error('Documento no encontrado');
+    // El mensaje incluye el detalle: "no encontrado" a secas
+    // esconde si el problema fue permisos o la consulta misma.
+    if (eDoc || !doc) throw new Error('Documento no encontrado: ' + (eDoc?.message ?? documento_id));
 
-    const tipo   = (doc as any).tipos_documento?.clave ?? 'OTRO';
-    const campos = (doc as any).tipos_documento?.campos_ocr ?? [];
+    // Dos consultas en lugar de una relacion embebida: el join
+    // implicito de PostgREST no se resuelve de forma confiable
+    // desde la Edge Function.
+    let tipo = 'OTRO';
+    let campos: string[] = [];
+    if (doc.tipo_id) {
+      const { data: t } = await sb
+        .from('tipos_documento')
+        .select('clave, campos_ocr')
+        .eq('id', doc.tipo_id)
+        .single();
+      if (t) { tipo = t.clave; campos = t.campos_ocr ?? []; }
+    }
 
     // Tipos sin campos declarados no se procesan: gastar una
     // llamada de IA en un comprobante de domicilio del que no se
