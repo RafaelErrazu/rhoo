@@ -695,6 +695,117 @@ main{flex:1; padding:24px 22px 60px}
   .md-caja{max-height:94vh}
   .ex-vac{flex-direction:column; text-align:center}
 }
+/* ── Turnos ── */
+.tu-head{display:flex; gap:14px; align-items:flex-start; margin-bottom:14px}
+.tu-lista{display:flex; flex-direction:column; gap:8px}
+.tu-item{
+  display:flex; align-items:center; gap:14px; cursor:pointer;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:13px 16px;
+  transition:border-color .16s;
+}
+.tu-item:hover{border-color:var(--brand)}
+.tu-item.off{opacity:.5}
+.tu-color{
+  width:44px; height:36px; border-radius:var(--r-sm); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.04em;
+}
+.tu-info{flex:1; min-width:0}
+.tu-info b{display:block; font-size:.88rem}
+.tu-info span{font-size:.75rem; color:var(--txt-3)}
+.tu-meta{text-align:right; flex-shrink:0}
+.tu-meta span{display:block; font-size:.7rem; color:var(--txt-3)}
+.tu-meta b{font-size:1.1rem; font-weight:800; font-variant-numeric:tabular-nums}
+.tu-meta em{display:block; font-size:.66rem; color:var(--txt-3); font-style:normal}
+.tu-ciclo{display:flex; gap:3px; flex-shrink:0}
+
+.cal-d, .cal-t{
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:26px; height:26px; border-radius:6px;
+  font-size:.68rem; font-weight:800;
+}
+.cal-t{background:var(--brand-s); color:var(--brand-p)}
+.cal-d{background:var(--linea-s); color:var(--txt-3)}
+
+.cal-nav{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.cal-nav button{
+  background:var(--panel); border:1.5px solid var(--linea); cursor:pointer;
+  border-radius:var(--r-sm); padding:7px 12px; color:var(--txt-2);
+  font-family:inherit; font-size:.8rem;
+}
+.cal-nav button:hover{border-color:var(--brand); color:var(--brand-p)}
+.cal-nav span{font-size:.86rem; font-weight:700; flex:1; text-align:center}
+.cal-hoy{font-weight:700}
+
+.cal-scroll{overflow-x:auto; background:var(--panel);
+  border:1px solid var(--linea); border-radius:var(--r-lg)}
+table.cal{border-collapse:collapse; width:100%}
+table.cal th{
+  padding:9px 4px; text-align:center; font-size:.68rem;
+  border-bottom:1px solid var(--linea); color:var(--txt-3);
+}
+table.cal th span{display:block; font-size:.6rem; font-weight:700;
+  text-transform:uppercase}
+table.cal th b{font-size:.82rem; color:var(--txt-2)}
+table.cal th.cal-finde{background:var(--linea-s)}
+table.cal th.cal-hoy-col{background:var(--brand-s)}
+table.cal th.cal-hoy-col b{color:var(--brand-p)}
+.cal-nom{
+  text-align:left !important; padding:8px 12px !important;
+  position:sticky; left:0; background:var(--panel); z-index:1;
+  border-right:1px solid var(--linea); min-width:170px;
+  font-size:.8rem; font-weight:700;
+}
+.cal-nom span{display:block; font-size:.68rem; color:var(--txt-3); font-weight:600}
+td.cal-c{
+  text-align:center; padding:4px 3px;
+  border-bottom:1px solid var(--linea-s);
+}
+td.cal-c .cal-t{background:color-mix(in oklch, var(--c) 18%, white);
+  color:color-mix(in oklch, var(--c) 75%, black)}
+td.cal-fest{background:#FEF3E2}
+.cal-leyenda{display:flex; flex-wrap:wrap; gap:12px; margin-top:12px}
+.cal-leyenda span{display:inline-flex; align-items:center; gap:6px;
+  font-size:.72rem; color:var(--txt-3)}
+.cal-leyenda i{width:11px; height:11px; border-radius:3px; display:inline-block}
+.cal-li-d{background:var(--linea)}
+.cal-li-f{background:#FEF3E2; border:1px solid #F5C078}
+
+.pat-campos{display:grid; gap:12px}
+.pat-ciclo{display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start}
+.pat-slot{position:relative; display:flex; flex-direction:column; gap:3px}
+.pat-n{font-size:.62rem; color:var(--txt-3); font-weight:700; text-align:center}
+.pat-slot select{
+  font-family:inherit; font-size:.78rem; padding:7px 8px;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  background:var(--panel); min-width:88px;
+}
+.pat-slot select:focus{outline:none; border-color:var(--brand)}
+.pat-x{
+  position:absolute; top:14px; right:-5px; width:17px; height:17px;
+  border-radius:50%; border:none; cursor:pointer;
+  background:var(--error); color:#fff; font-size:.55rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.pat-add{
+  margin-top:16px; width:36px; height:34px; cursor:pointer;
+  background:var(--brand-s); color:var(--brand-p);
+  border:1.5px dashed var(--brand-b); border-radius:var(--r-sm);
+}
+.pat-aviso{
+  display:flex; gap:9px; align-items:flex-start; margin-top:14px;
+  font-size:.78rem; color:#92400E; line-height:1.55;
+  background:#FEF3E2; border-radius:var(--r-sm); padding:11px 13px;
+}
+.pat-aviso i{margin-top:2px; flex-shrink:0}
+.pat-vista{margin-top:20px}
+.pat-prev{display:flex; flex-wrap:wrap; gap:3px}
+
+@media(max-width:640px){
+  .tu-head{flex-direction:column}
+  .cal-nom{min-width:130px; font-size:.75rem}
+}
 </style>
 </head>
 <body>
@@ -790,6 +901,7 @@ main{flex:1; padding:24px 22px 60px}
 <script src="js/ui.js"></script>
 <script src="js/modulos/config.js"></script>
 <script src="js/modulos/empleados.js"></script>
+<script src="js/modulos/turnos.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -876,7 +988,8 @@ function toast(tipo, msg){
 const RUTAS = {
   config:     () => moduloConfig(),
   asistencia: () => moduloAsistencia(),
-  empleados:  () => moduloEmpleados()
+  empleados:  () => moduloEmpleados(),
+  turnos:     () => moduloTurnos()
 };
 
 function pintarModulo(id){

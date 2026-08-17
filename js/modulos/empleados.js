@@ -235,6 +235,9 @@ async function verEmpleado(id){
     acciones:
       '<button class="btn-sec-claro" onclick="editarEmpleado(\''+id+'\')">'
       + '<i class="fas fa-pen"></i> Editar</button>'
+      + '<button class="btn-sec-claro" onclick="asignarTurnoA(\''+id+'\',\''
+      + e.nombre_completo.replace(/'/g,"\\'")+'\')">'
+      + '<i class="fas fa-clock-rotate-left"></i> Turno</button>'
       + (e.estatus === 'Activo'
           ? '<button class="btn-peligro" onclick="bajaEmpleado(\''+id+'\',\''
             + e.nombre_completo.replace(/'/g,"\\'")+'\')">Dar de baja</button>'
