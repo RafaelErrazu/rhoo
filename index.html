@@ -806,6 +806,55 @@ td.cal-fest{background:#FEF3E2}
   .tu-head{flex-direction:column}
   .cal-nom{min-width:130px; font-size:.75rem}
 }
+/* ── Documentos ── */
+.doc-faltan{
+  background:#FEF3E2; border-radius:var(--r-md); padding:13px 15px; margin-bottom:14px;
+}
+.doc-faltan p{display:flex; align-items:center; gap:8px; font-size:.82rem;
+  color:#92400E; margin-bottom:9px}
+.doc-faltan > div{display:flex; flex-wrap:wrap; gap:6px}
+.doc-faltan button{
+  font-family:inherit; font-size:.74rem; font-weight:700; cursor:pointer;
+  background:#fff; border:1px solid #F5C078; color:#92400E;
+  border-radius:99px; padding:5px 11px;
+}
+.doc-faltan button:hover{background:#FDF5E6}
+.doc-ok{
+  display:flex; align-items:center; gap:8px; font-size:.82rem;
+  color:var(--ok); background:#E3F5F0; border-radius:var(--r-md);
+  padding:12px 15px; margin-bottom:14px;
+}
+.doc-add{width:100%; justify-content:center; display:flex;
+  align-items:center; gap:8px; padding:11px}
+.doc-lista{display:flex; flex-direction:column; gap:7px; margin-top:14px}
+.doc-item{
+  display:flex; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:11px 13px;
+}
+.doc-item.venc{background:#FEF2F2; border-color:#FECACA}
+.doc-ico{font-size:1.15rem; color:var(--txt-3); flex-shrink:0; width:20px;
+  text-align:center}
+.doc-info{flex:1; min-width:0}
+.doc-info b{display:block; font-size:.84rem}
+.doc-info span{display:block; font-size:.72rem; color:var(--txt-3);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.doc-info em{display:block; font-size:.7rem; color:var(--txt-3); font-style:normal}
+.doc-info em.venc{color:var(--error); font-weight:700}
+.doc-info em.pv{color:#B45309; font-weight:700}
+.doc-acc{display:flex; gap:4px; flex-shrink:0}
+.doc-acc button{
+  background:none; border:none; cursor:pointer; color:var(--txt-3);
+  padding:7px 8px; border-radius:var(--r-sm); font-size:.82rem;
+}
+.doc-acc button:hover{background:var(--linea-s); color:var(--txt)}
+.doc-ocr{
+  display:flex; align-items:center; gap:5px;
+  background:var(--brand-s) !important; color:var(--brand-p) !important;
+  font-family:inherit; font-size:.72rem; font-weight:700;
+  padding:6px 10px !important; white-space:nowrap;
+}
+.doc-est{color:var(--txt-3); font-size:.78rem; padding:0 8px}
 </style>
 </head>
 <body>
@@ -902,6 +951,7 @@ td.cal-fest{background:#FEF3E2}
 <script src="js/modulos/config.js"></script>
 <script src="js/modulos/empleados.js"></script>
 <script src="js/modulos/turnos.js"></script>
+<script src="js/modulos/documentos.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
