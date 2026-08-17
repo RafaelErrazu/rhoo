@@ -855,6 +855,42 @@ td.cal-fest{background:#FEF3E2}
   padding:6px 10px !important; white-space:nowrap;
 }
 .doc-est{color:var(--txt-3); font-size:.78rem; padding:0 8px}
+/* ── PWA ── */
+.pwa-instalar{
+  width:100%; margin-bottom:8px; padding:9px;
+  background:rgba(46,196,182,.14); border:1px solid rgba(46,196,182,.3);
+  border-radius:var(--r-sm); cursor:pointer;
+  color:var(--brand); font-family:inherit; font-size:.78rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  transition:background-color .18s;
+}
+.pwa-instalar:hover{background:rgba(46,196,182,.22)}
+.pwa-barra{
+  position:fixed; bottom:16px; left:50%; z-index:280;
+  transform:translate(-50%, 140%);
+  display:flex; align-items:center; gap:16px;
+  background:var(--tinta); color:#fff;
+  border-radius:var(--r-md); padding:12px 16px;
+  box-shadow:var(--s-lg); max-width:calc(100vw - 28px);
+  transition:transform .3s var(--ease);
+}
+.pwa-barra.on{transform:translate(-50%, 0)}
+.pwa-barra span{display:flex; align-items:center; gap:9px;
+  font-size:.83rem; font-weight:600; white-space:nowrap}
+.pwa-barra span i{color:var(--brand)}
+.pwa-barra > div{display:flex; gap:7px; flex-shrink:0}
+.pwa-ok, .pwa-x{
+  font-family:inherit; font-size:.79rem; font-weight:700; cursor:pointer;
+  border:none; border-radius:var(--r-sm); padding:7px 13px;
+}
+.pwa-ok{background:var(--brand); color:#062A26}
+.pwa-x{background:rgba(255,255,255,.12); color:rgba(255,255,255,.75)}
+@media(max-width:520px){
+  .pwa-barra{flex-direction:column; align-items:stretch; gap:10px;
+    left:14px; right:14px; transform:translateY(140%); max-width:none}
+  .pwa-barra.on{transform:none}
+  .pwa-barra > div{justify-content:flex-end}
+}
 </style>
 </head>
 <body>
@@ -1148,7 +1184,12 @@ async function cargarSesion(user){
   $('carga').classList.add('off');
 
   pintarNav();
-  irA('inicio');
+  // Si vino de un atajo del manifest, se abre ese módulo, pero
+  // solo si su rol lo permite: el atajo no debe brincar permisos.
+  const mod = MODULOS.flatMap(g => g.items)
+    .find(m => m.id === window._moduloInicial && puedeVer(m.roles));
+  irA(mod ? mod.id : 'inicio');
+  window._moduloInicial = null;
 }
 
 /* Un solo listener maneja arranque, login y logout: Supabase
@@ -1175,6 +1216,128 @@ setTimeout(() => {
     $('login').style.display = 'flex';
   }
 }, 4000);
+/* ═══════════════════════════════════════════════════════════
+   PWA · registro, instalación y aviso de nueva versión
+   ═══════════════════════════════════════════════════════════ */
+
+let _instalable = null;
+
+/* Registro del service worker. Solo en HTTPS o localhost: con
+   file:// el navegador lo rechaza, y eso es normal. */
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+
+      // Version nueva esperando. NO se recarga sola: alguien
+      // capturando un expediente perderia lo escrito.
+      reg.addEventListener('updatefound', () => {
+        const nuevo = reg.installing;
+        if(!nuevo) return;
+        nuevo.addEventListener('statechange', () => {
+          if(nuevo.state === 'installed' && navigator.serviceWorker.controller){
+            mostrarBarraActualizar(reg);
+          }
+        });
+      });
+
+      // Revisa cada 30 min si hay algo nuevo desplegado
+      setInterval(() => reg.update().catch(()=>{}), 30 * 60 * 1000);
+
+    }).catch(e => console.warn('[PWA] no se registro el service worker', e));
+  });
+}
+
+function mostrarBarraActualizar(reg){
+  if(document.getElementById('pwa-upd')) return;
+  const el = document.createElement('div');
+  el.id = 'pwa-upd';
+  el.className = 'pwa-barra';
+  el.innerHTML =
+    '<span><i class="fas fa-arrow-rotate-right"></i>'
+    + 'Hay una versión nueva de RHoo!</span>'
+    + '<div><button class="pwa-x" onclick="this.closest(\'.pwa-barra\').remove()">'
+    + 'Después</button>'
+    + '<button class="pwa-ok" id="pwa-recargar">Actualizar</button></div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+
+  document.getElementById('pwa-recargar').onclick = () => {
+    if(reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+    // controllerchange dispara cuando el sw nuevo toma el mando
+    navigator.serviceWorker.addEventListener('controllerchange',
+      () => location.reload());
+    setTimeout(() => location.reload(), 1200);   // respaldo
+  };
+}
+
+/* Instalación. El evento solo llega si el navegador considera la
+   app instalable: manifest válido, service worker activo y
+   HTTPS. Si no llega, el botón no se muestra en lugar de ofrecer
+   algo que va a fallar. */
+window.addEventListener('beforeinstallprompt', ev => {
+  ev.preventDefault();
+  _instalable = ev;
+  pintarBotonInstalar();
+});
+
+window.addEventListener('appinstalled', () => {
+  _instalable = null;
+  document.getElementById('pwa-inst')?.remove();
+  toast('ok', 'RHoo! quedó instalada en tu dispositivo');
+});
+
+const esIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+const yaInstalada = () =>
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+function pintarBotonInstalar(){
+  if(yaInstalada() || document.getElementById('pwa-inst')) return;
+  const pie = document.querySelector('.nav-pie');
+  if(!pie) return;
+
+  const b = document.createElement('button');
+  b.id = 'pwa-inst';
+  b.className = 'pwa-instalar';
+  b.innerHTML = '<i class="fas fa-mobile-screen"></i> Instalar app';
+  b.onclick = instalarApp;
+  pie.insertBefore(b, pie.firstChild);
+}
+
+async function instalarApp(){
+  // iOS no implementa beforeinstallprompt: la unica via es el
+  // menu Compartir, asi que se explica en lugar de fallar.
+  if(!_instalable){
+    modal({
+      titulo: 'Instalar RHoo!',
+      subtitulo: esIOS()
+        ? 'En iPhone o iPad: toca el botón Compartir del navegador y elige '
+          + '"Agregar a pantalla de inicio".'
+        : 'Tu navegador no ofrece instalación automática. Busca "Instalar" o '
+          + '"Agregar a pantalla de inicio" en su menú.',
+      ok: 'Entendido', cancelar: ''
+    });
+    return;
+  }
+  _instalable.prompt();
+  const r = await _instalable.userChoice;
+  if(r.outcome === 'accepted') _instalable = null;
+}
+
+/* Atajos del manifest: ?ir=asistencia abre ese módulo directo.
+   Se guarda y se aplica DESPUES del login, porque al arrancar
+   todavía no se sabe si el usuario tiene permiso de verlo. */
+const _irA = new URLSearchParams(location.search).get('ir');
+if(_irA){
+  window._moduloInicial = _irA;
+  history.replaceState({}, '', location.pathname);
+}
+
+/* En iOS el botón nunca aparecería porque no hay evento. Se
+   muestra de todos modos cuando no está instalada. */
+if(esIOS() && !yaInstalada()){
+  window.addEventListener('load', () => setTimeout(pintarBotonInstalar, 1500));
+}
 </script>
 </body>
 </html>
