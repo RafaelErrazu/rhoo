@@ -196,7 +196,10 @@ async function verEmpleado(id){
       + '<div class="ex-vac">'
       + '<div><b>'+(+e.saldo_vacaciones).toFixed(0)+'</b><span>días disponibles</span></div>'
       + '<p>Le corresponden <b>'+e.dias_lft+'</b> días por año según el '
-      + 'artículo 76 de la LFT con su antigüedad actual.</p></div>'
+      + 'artículo 76 de la LFT con su antigüedad actual.'
+      + '<button class="ex-link" onclick="cargarHistoricoVac(\''+id+'\',\''
+      + e.nombre_completo.replace(/'/g,"\\'")+'\','+e.saldo_vacaciones+')">'
+      + 'Registrar días ya tomados</button></p></div>'
       + '</section>'
 
       + '<section class="ex-sec"><h4>Datos personales</h4>'
