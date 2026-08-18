@@ -980,6 +980,93 @@ td.cal-fest{background:#FEF3E2}
   cursor:pointer; font-family:inherit; font-size:.76rem; font-weight:700;
   color:var(--brand-p); text-decoration:underline;
 }
+/* ── Organigrama ── */
+.org-arbol{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:6px 0; overflow:hidden;
+}
+.org-fila{
+  display:flex; align-items:center; gap:9px;
+  padding:8px 16px 8px calc(16px + var(--n) * 26px);
+  border-bottom:1px solid var(--linea-s);
+  position:relative;
+}
+.org-fila:last-child{border-bottom:none}
+.org-fila:hover{background:#F4FAFA}
+/* Guía de nivel: una línea sutil, no un árbol de conectores.
+   Los conectores en un árbol plegable se rompen visualmente en
+   cuanto se colapsa una rama. */
+.org-fila::before{
+  content:''; position:absolute; left:calc(11px + var(--n) * 26px);
+  top:0; bottom:0; width:1px; background:var(--linea);
+  display:var(--linea-nivel, block);
+}
+.org-fila[style*="--n:0"]::before{display:none}
+.org-toggle{
+  width:22px; height:22px; flex-shrink:0; cursor:pointer;
+  background:var(--linea-s); border:none; border-radius:5px;
+  color:var(--txt-2); font-size:.62rem; z-index:1;
+}
+.org-toggle:hover{background:var(--brand-s); color:var(--brand-p)}
+.org-hoja{width:22px; flex-shrink:0}
+.org-info{flex:1; min-width:0; cursor:pointer}
+.org-info b{display:block; font-size:.85rem}
+.org-info span{font-size:.73rem; color:var(--txt-3)}
+.org-eq{
+  font-size:.7rem; font-weight:800; color:var(--brand-p);
+  background:var(--brand-s); border-radius:99px; padding:3px 9px;
+  flex-shrink:0; font-variant-numeric:tabular-nums;
+}
+.org-mover{
+  background:none; border:none; cursor:pointer; color:var(--linea);
+  padding:6px 7px; border-radius:var(--r-sm); font-size:.75rem; flex-shrink:0;
+}
+.org-fila:hover .org-mover{color:var(--txt-3)}
+.org-mover:hover{background:var(--linea-s); color:var(--brand-p) !important}
+
+.org-solos{
+  margin-top:18px; background:#FEF3E2; border-radius:var(--r-lg); padding:16px 18px;
+}
+.org-solos h4{
+  display:flex; align-items:center; gap:8px;
+  font-size:.82rem; font-weight:800; color:#92400E; margin-bottom:6px;
+}
+.org-solos p{font-size:.77rem; color:#92400E; line-height:1.5; margin-bottom:11px}
+.org-chips{display:flex; flex-wrap:wrap; gap:7px}
+.org-chips button{
+  display:flex; align-items:center; gap:7px; cursor:pointer;
+  font-family:inherit; font-size:.76rem; font-weight:600;
+  background:#fff; border:1px solid #F5C078; color:#92400E;
+  border-radius:99px; padding:6px 12px;
+}
+.org-chips button:hover{background:#FDF5E6}
+.org-chips button i{font-size:.62rem; opacity:.6}
+
+.eq-lista{display:flex; flex-direction:column; gap:8px}
+.eq-item{
+  display:flex; align-items:center; gap:13px; cursor:pointer;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:12px 15px;
+  transition:border-color .16s;
+}
+.eq-item:hover{border-color:var(--brand)}
+.eq-info{flex:1; min-width:0}
+.eq-info b{display:block; font-size:.87rem}
+.eq-info span{font-size:.73rem; color:var(--txt-3)}
+.eq-meta{display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  justify-content:flex-end}
+.eq-vac{font-size:.74rem; color:var(--txt-2); font-variant-numeric:tabular-nums}
+.eq-pend{
+  font-size:.72rem; font-weight:700; color:#B45309;
+  background:#FEF3E2; border-radius:99px; padding:3px 9px;
+}
+
+@media(max-width:640px){
+  .org-fila{padding-left:calc(10px + var(--n) * 18px)}
+  .org-fila::before{left:calc(6px + var(--n) * 18px)}
+  .eq-item{flex-wrap:wrap}
+  .eq-meta{width:100%; justify-content:flex-start}
+}
 </style>
 </head>
 <body>
@@ -1078,6 +1165,7 @@ td.cal-fest{background:#FEF3E2}
 <script src="js/modulos/turnos.js"></script>
 <script src="js/modulos/documentos.js"></script>
 <script src="js/modulos/incidencias.js"></script>
+<script src="js/modulos/organigrama.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -1097,6 +1185,7 @@ const MODULOS = [
   ]},
   { grupo:'Personal', items:[
     { id:'empleados',  nombre:'Empleados',   icono:'fa-users',          roles:'jefe' },
+    { id:'organigrama',nombre:'Mi equipo',   icono:'fa-sitemap',        roles:'jefe' },
     { id:'turnos',     nombre:'Turnos',      icono:'fa-clock-rotate-left', roles:'admin' },
     { id:'nom035',     nombre:'NOM-035',     icono:'fa-shield-halved',  roles:'admin' }
   ]},
@@ -1167,7 +1256,8 @@ const RUTAS = {
   empleados:  () => moduloEmpleados(),
   turnos:      () => moduloTurnos(),
   incidencias: () => moduloIncidencias(),
-  vacaciones:  () => moduloVacaciones()
+  vacaciones:   () => moduloVacaciones(),
+  organigrama:  () => moduloOrganigrama()
 };
 
 function pintarModulo(id){

@@ -189,7 +189,11 @@ async function verEmpleado(id){
       + dato('Antigüedad', antig(e.antiguedad_meses))
       + dato('Turno', data.turno ? data.turno.nombre + ' ('
           + data.turno.entrada.slice(0,5)+'-'+data.turno.salida.slice(0,5)+')' : 'Sin asignar')
-      + dato('Jefe', data.jefe?.nombre)
+      + '<div class="ex-dato"><span>Jefe</span><b>'
+      + (data.jefe?.nombre || '—')
+      + '<button class="ex-link" onclick="cambiarJefe(\''+id+'\',\''
+      + e.nombre_completo.replace(/'/g,"\\'")+'\')">Cambiar</button>'
+      + '</b></div>'
       + '</div>'
       // El saldo con su desglose: "20 días" sin contexto no dice
       // si es lo que le toca por ley o si trae días acumulados.
