@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resultados NOM-035</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0D1321">
+<link rel="icon" href="img/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#2EC4B6; --brand-s:#E6F7F5; --tinta:#0D1321;
+  --fondo:#F7FAFA; --panel:#FFF; --linea:#E4EAEA; --linea-s:#F0F4F4;
+  --txt:#0D1321; --txt-2:#4A5568; --txt-3:#8494A7; --ok:#14A085;
+  --r:12px; --r-lg:18px;
+}
+body{font-family:'Nunito',system-ui,sans-serif; background:var(--fondo);
+  color:var(--txt); min-height:100vh}
+.top{background:var(--tinta); padding:13px 16px; display:flex; align-items:center; gap:10px}
+.top img{height:26px}
+.wrap{max-width:620px; margin:0 auto; padding:26px 16px 60px}
+.card{background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:24px; margin-bottom:14px}
+.card h1{font-size:1.25rem; font-weight:900; margin-bottom:8px}
+.card h2{font-size:.72rem; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--brand); margin-bottom:12px}
+.card p{font-size:.87rem; color:var(--txt-2); line-height:1.6; margin-bottom:12px}
+.campo label{display:block; font-size:.72rem; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--txt-3); margin-bottom:6px}
+.campo input{width:100%; font-family:inherit; font-size:.95rem; padding:13px 14px;
+  border:2px solid var(--linea); border-radius:var(--r); background:var(--panel)}
+.campo input:focus{outline:none; border-color:var(--brand)}
+.btn{width:100%; margin-top:14px; padding:14px; border:none; border-radius:var(--r);
+  cursor:pointer; background:var(--brand); color:#062A26;
+  font-family:inherit; font-size:.95rem; font-weight:800}
+.btn:hover{background:#3AD4C6}
+.btn:disabled{opacity:.5}
+.cifra{font-size:2.2rem; font-weight:900; line-height:1; font-variant-numeric:tabular-nums}
+.pie{font-size:.78rem; color:var(--txt-3); margin-top:5px}
+.barra{display:flex; height:18px; border-radius:99px; overflow:hidden;
+  background:var(--linea-s); margin:10px 0 12px}
+.ley{display:flex; flex-wrap:wrap; gap:9px 15px}
+.ley span{display:inline-flex; align-items:center; gap:6px; font-size:.74rem;
+  color:var(--txt-3)}
+.ley i{width:10px; height:10px; border-radius:3px; display:inline-block}
+.dom{padding:9px 0; border-bottom:1px solid var(--linea-s)}
+.dom:last-child{border-bottom:none}
+.dom-t{display:flex; justify-content:space-between; gap:12px; margin-bottom:5px}
+.dom-t span{font-size:.83rem; font-weight:600; color:var(--txt-2)}
+.dom-t b{font-size:.79rem; font-weight:800}
+.dom-b{height:7px; background:var(--linea-s); border-radius:99px; overflow:hidden}
+.acc li{font-size:.85rem; color:var(--txt-2); line-height:1.6; margin-bottom:9px;
+  padding-left:22px; position:relative; list-style:none}
+.acc li::before{content:'✓'; position:absolute; left:0; color:var(--brand);
+  font-weight:900}
+.nota{font-size:.78rem; color:var(--txt-3); line-height:1.6;
+  background:var(--panel); border:1px dashed var(--linea);
+  border-radius:var(--r); padding:14px 16px}
+.err{background:#FEF2F2; border:1px solid #FECACA; border-radius:var(--r);
+  padding:13px 15px; font-size:.85rem; color:#B91C1C; margin-bottom:14px; display:none}
+.err.on{display:block}
+</style>
+</head>
+<body>
+<header class="top"><img src="img/logo-completo.svg" alt="RHoo!"></header>
+
+<div class="wrap">
+  <div id="gate">
+    <div class="card">
+      <h1>Resultados de tu centro de trabajo</h1>
+      <p>Consulta los resultados de la evaluación de factores de riesgo
+         psicosocial. Son datos del grupo: nadie puede ver tus respuestas
+         individuales.</p>
+      <div class="err" id="err"></div>
+      <div class="campo">
+        <label for="no">Número de empleado</label>
+        <input type="text" id="no" inputmode="numeric" placeholder="Ej. PN-001"
+               onkeydown="if(event.key==='Enter')consultar()">
+      </div>
+      <button class="btn" id="btn" onclick="consultar()">Ver resultados</button>
+    </div>
+  </div>
+  <div id="res"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const COL = { 'Nulo':'#8494A7','Bajo':'#14A085','Medio':'#D97706',
+              'Alto':'#EA580C','Muy alto':'#B91C1C' };
+const ORD = ['Nulo','Bajo','Medio','Alto','Muy alto'];
+
+async function consultar(){
+  const no = $('no').value.trim();
+  if(!no){ err('Escribe tu número de empleado.'); return }
+  const b = $('btn');
+  b.disabled = true; b.textContent = 'Consultando...';
+
+  const { data, error } = await sb.rpc('nom035_resultados_publicos',
+    { p_no_empleado: no });
+
+  b.disabled = false; b.textContent = 'Ver resultados';
+  if(error){ err('No se pudo consultar. Revisa tu conexión.'); return }
+
+  if(data.status === 'error' || data.status === 'sin_datos'){
+    err(data.message); return;
+  }
+  if(data.status === 'reservado'){ pintarReservado(data); return }
+  pintar(data);
+}
+
+function err(m){ $('err').textContent = m; $('err').classList.add('on') }
+
+function pintarReservado(d){
+  $('gate').style.display = 'none';
+  $('res').innerHTML =
+    '<div class="card"><h2>Resultados en proceso</h2>'
+    + '<p>'+d.message+'</p>'
+    + '<p style="font-size:.82rem;color:var(--txt-3)">Si aún no contestaste el '
+    + 'cuestionario, tu participación ayuda a que el diagnóstico sea real.</p></div>';
+}
+
+function pintar(d){
+  $('gate').style.display = 'none';
+  const tot = d.total;
+  const dist = d.distribucion || {};
+  const enRiesgo = (dist['Alto']||0) + (dist['Muy alto']||0);
+  const pctR = tot ? Math.round(enRiesgo*100/tot) : 0;
+
+  const barra = ORD.filter(n => dist[n]).map(n =>
+    '<div style="width:'+(dist[n]/tot*100)+'%;background:'+COL[n]+'" '
+    + 'title="'+n+': '+dist[n]+'"></div>').join('');
+
+  const ley = ORD.filter(n => dist[n]).map(n =>
+    '<span><i style="background:'+COL[n]+'"></i>'+n+' '
+    + Math.round(dist[n]/tot*100)+'%</span>').join('');
+
+  const doms = (d.dominios||[]).slice(0,5).map(x => {
+    const c = x.pct >= 50 ? '#B91C1C' : '#EA580C';
+    return '<div class="dom"><div class="dom-t"><span>'+x.dominio+'</span>'
+      + '<b style="color:'+c+'">'+x.pct+'%</b></div>'
+      + '<div class="dom-b"><div style="width:'+Math.max(x.pct,2)
+      + '%;height:100%;background:'+c+'"></div></div></div>';
+  }).join('');
+
+  $('res').innerHTML =
+    '<div class="card">'
+    + '<h1>'+(d.centro||'Tu centro de trabajo')+'</h1>'
+    + '<p>'+d.campana+' · '+tot+' de '+d.universo+' trabajadores participaron</p>'
+    + '</div>'
+
+    + '<div class="card"><h2>Nivel de riesgo del centro</h2>'
+    + '<p class="cifra" style="color:'+(COL[d.nivel_centro]||'#4A5568')+'">'
+    + d.nivel_centro+'</p>'
+    + '<p class="pie">'+pctR+'% de quienes participaron está en riesgo alto o muy alto</p>'
+    + '</div>'
+
+    + '<div class="card"><h2>Cómo se distribuyen los resultados</h2>'
+    + '<div class="barra">'+barra+'</div>'
+    + '<div class="ley">'+ley+'</div></div>'
+
+    + (doms
+        ? '<div class="card"><h2>Aspectos con mayor riesgo</h2>'+doms+'</div>'
+        : '<div class="card"><h2>Aspectos con mayor riesgo</h2>'
+          + '<p>Ningún aspecto quedó en nivel de riesgo alto. Se mantiene la '
+          + 'vigilancia.</p></div>')
+
+    + ((d.acciones||[]).length
+        ? '<div class="card"><h2>Qué se está haciendo</h2><ul class="acc">'
+          + d.acciones.map(a => '<li>'+a+'</li>').join('')
+          + '</ul></div>'
+        : '')
+
+    + '<p class="nota"><b>Sobre estos datos.</b> Corresponden únicamente a tu '
+    + 'centro de trabajo y son colectivos: no incluyen resultados de personas. '
+    + 'Tus respuestas son confidenciales y solo el área de salud ocupacional '
+    + 'puede consultar los resultados individuales.</p>';
+}
+</script>
+</body>
+</html>

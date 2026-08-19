@@ -311,6 +311,8 @@ async function pintarDashboard(){
     + '<p>'+(a.campana.centro||'')+' · '+a.total+' de '+a.campana.universo
     + ' trabajadores ('+a.participacion_pct+'%)</p></div>'
     + '<div style="display:flex;gap:8px">'
+    + '<button class="btn-sec-claro" onclick="verDifusion()">'
+    + '<i class="fas fa-bullhorn"></i> Difusión</button>'
     + '<button class="btn-sec-claro" onclick="verInforme()">'
     + '<i class="fas fa-file-lines"></i> Informe 7.7</button></div></div>'
 
@@ -565,6 +567,7 @@ function cuIr(t){
     b.classList.toggle('on', b.dataset.t === t));
   if(t === 'campanas')  pintarCampanas();
   if(t === 'dashboard') pintarDashboard();
+  if(t === 'programa')  pintarPrograma();
 }
 
 async function moduloCumplimiento(){
@@ -574,6 +577,235 @@ async function moduloCumplimiento(){
     + 'Campañas</button>'
     + '<button class="asis-tab cu-tab" data-t="dashboard" onclick="cuIr(\'dashboard\')">'
     + 'Resultados</button>'
+    + '<button class="asis-tab cu-tab" data-t="programa" onclick="cuIr(\'programa\')">'
+    + 'Programa de acción</button>'
     + '</div></div><div id="cu-cuerpo"></div>';
   cuIr(_cuTab);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Programa de intervención · Capítulo 8
+   Diagnosticar sin plan de acción es la mitad del trabajo: en
+   una inspección el informe prueba que evaluaste, el programa
+   prueba que actuaste.
+   ═══════════════════════════════════════════════════════════ */
+
+const NIV_ACC = {
+  organizacional:{ t:'Organizacional', c:'#2EC4B6' },
+  grupal:        { t:'Grupal',         c:'#6366F1' },
+  individual:    { t:'Individual',     c:'#F4795B' }
+};
+const EST_ACC = {
+  pendiente:  { t:'Pendiente',  c:'#8494A7', bg:'var(--linea-s)' },
+  en_proceso: { t:'En proceso', c:'#B45309', bg:'#FEF3E2' },
+  hecha:      { t:'Realizada',  c:'#14A085', bg:'#E3F5F0' },
+  cancelada:  { t:'Cancelada',  c:'#8494A7', bg:'var(--linea-s)' }
+};
+
+async function pintarPrograma(){
+  const cont = document.getElementById('cu-cuerpo');
+  if(!_cuCamp){ cuIr('campanas'); return; }
+
+  cont.innerHTML = '<p class="cargando"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
+  const { data, error } = await sb.rpc('nom035_programa', { p_campana_id: _cuCamp });
+  if(error){ cont.innerHTML = '<p class="cargando">'+error.message+'</p>'; return; }
+
+  if(data.status === 'vacio'){
+    cont.innerHTML =
+      '<div class="vacio" style="max-width:520px">'
+      + '<i class="fas fa-list-check"></i>'
+      + '<h3>Sin programa de intervención</h3>'
+      + '<p>La Norma obliga a un Programa de intervención cuando el resultado es '
+      + 'Medio, Alto o Muy alto (numerales 8.3 a 8.5). El sistema lo propone con '
+      + 'las acciones que la Norma pide para los dominios en riesgo, y tú asignas '
+      + 'responsables y fechas.</p>'
+      + '<button class="btn-pri" style="margin-top:16px" onclick="generarPrograma()">'
+      + '<i class="fas fa-wand-magic-sparkles"></i> Generar programa</button></div>';
+    return;
+  }
+
+  const p = data.programa;
+  const acc = data.acciones || [];
+  const vencidas = acc.filter(a => a.vencida).length;
+  const sinResp = acc.filter(a => !a.responsable && a.estado !== 'cancelada').length;
+
+  // Se agrupa por dominio: la Norma pide analizar cada dominio,
+  // y una lista plana de 25 acciones no se puede revisar.
+  const grupos = {};
+  acc.forEach(a => {
+    const k = a.dominio || 'Medidas generales de prevención';
+    (grupos[k] = grupos[k] || []).push(a);
+  });
+
+  cont.innerHTML =
+    '<div class="cu-head"><div><h3>'+p.nombre+'</h3>'
+    + '<p>Detonado por nivel '+(p.nivel_origen||'—')+' · desde '
+    + new Date(p.inicia+'T12:00').toLocaleDateString('es-MX')+'</p></div>'
+    + '<button class="btn-sec-claro" onclick="nuevaAccion(\''+p.id+'\')">'
+    + '<i class="fas fa-plus"></i> Agregar acción</button></div>'
+
+    + '<div class="cu-kpis">'
+    + '<div class="cu-kpi'+(data.avance===100?' ok':'')+'">'
+    + '<b class="num">'+data.avance+'%</b><span>avance</span></div>'
+    + '<div class="cu-kpi"><b class="num">'+acc.length+'</b><span>acciones</span></div>'
+    + '<div class="cu-kpi"><b class="num" style="color:'
+    + (vencidas?'#B91C1C':'var(--txt)')+'">'+vencidas+'</b>'
+    + '<span>vencidas</span></div>'
+    + '</div>'
+
+    + (sinResp
+        ? '<p class="aviso" style="background:#FEF3E2;color:#92400E">'
+          + '<i class="fas fa-user-slash" style="color:#B45309"></i>'
+          + sinResp+' acción(es) sin responsable. Una acción sin dueño no se '
+          + 'ejecuta, y en una inspección se lee como incumplimiento.</p>'
+        : '')
+
+    + Object.entries(grupos).map(([dom, lista]) =>
+        '<div class="pr-grupo">'
+        + '<h4>'+dom+'</h4>'
+        + lista.map(a => {
+            const e = EST_ACC[a.estado] || EST_ACC.pendiente;
+            const n = NIV_ACC[a.nivel] || NIV_ACC.organizacional;
+            return '<div class="pr-acc'+(a.vencida?' venc':'')+'" '
+              + 'onclick="editarAccion(\''+a.id+'\')">'
+              + '<div class="pr-acc-t">'
+              + '<span class="pr-niv" style="color:'+n.c+'">'+n.t+'</span>'
+              + '<span class="tb-badge" style="color:'+e.c+';background:'+e.bg+'">'
+              + e.t+'</span></div>'
+              + '<p>'+a.accion+'</p>'
+              + '<div class="pr-acc-m">'
+              + '<span><i class="fas fa-user"></i>'
+              + (a.responsable || 'Sin responsable')+'</span>'
+              + (a.meta
+                  ? '<span'+(a.vencida?' class="venc"':'')+'>'
+                    + '<i class="fas fa-calendar"></i>'
+                    + new Date(a.meta+'T12:00').toLocaleDateString('es-MX')+'</span>'
+                  : '<span class="falta"><i class="fas fa-calendar"></i>Sin fecha</span>')
+              + (a.evidencia
+                  ? '<span class="ok"><i class="fas fa-paperclip"></i>Con evidencia</span>'
+                  : '')
+              + '</div></div>';
+          }).join('')
+        + '</div>').join('');
+}
+
+async function generarPrograma(){
+  const { data, error } = await sb.rpc('nom035_generar_programa',
+    { p_campana_id: _cuCamp });
+  if(error){ toast('error', error.message); return; }
+
+  await modal({
+    titulo:'Programa generado',
+    subtitulo: data.acciones+' acciones propuestas'
+      + (data.requiere_control
+          ? ' para los dominios que cruzaron el umbral de riesgo, más las medidas '
+            + 'de prevención que la Norma exige siempre.'
+          : '. El nivel es '+data.nivel+', así que solo se incluyen las medidas de '
+            + 'prevención generales del numeral 8.1: no se requieren medidas de '
+            + 'control adicionales.')
+      + ' Asigna responsables y fechas antes de activarlo.',
+    ok:'Ver programa', cancelar:'' });
+  pintarPrograma();
+}
+
+async function editarAccion(id){
+  const { data } = await sb.rpc('nom035_programa', { p_campana_id: _cuCamp });
+  const a = (data.acciones||[]).find(x => x.id === id);
+  if(!a) return;
+
+  const { data: emps } = await sb.rpc('listar_empleados',
+    { p_buscar:null, p_estatus:'Activo', p_centro_id:null, p_limite:200, p_desde:0 });
+
+  const r = await modal({
+    titulo:'Acción del programa',
+    subtitulo: a.dominio || 'Medida general de prevención',
+    campos:[
+      { k:'accion', label:'Acción', t:'area', req:true, valor:a.accion },
+      { k:'nivel_accion', label:'Nivel de intervención', t:'select',
+        opciones:[['organizacional','Organizacional (política y organización del trabajo)'],
+                  ['grupal','Grupal (equipos y relaciones)'],
+                  ['individual','Individual (persona específica)']],
+        valor:a.nivel,
+        nota:'El numeral 8.4 pide ubicar cada acción en su plano. No todo es capacitación.' },
+      { k:'responsable_id', label:'Responsable', t:'select',
+        opciones:[['','Sin asignar']].concat(
+          (emps?.filas||[]).map(e => [e.id, e.nombre])),
+        valor:a.responsable_id || '' },
+      { k:'fecha_meta', label:'Fecha compromiso', t:'fecha', valor:a.meta || '',
+        ancho:'mitad' },
+      { k:'estado', label:'Estado', t:'select',
+        opciones:[['pendiente','Pendiente'],['en_proceso','En proceso'],
+                  ['hecha','Realizada'],['cancelada','Cancelada']],
+        valor:a.estado, ancho:'mitad' },
+      { k:'evidencia_nota', label:'Evidencia', t:'area', valor:a.nota || '',
+        nota:'Describe el respaldo: minuta, lista de asistencia, comunicado. '
+          + 'Obligatorio para marcarla como realizada.' }
+    ]
+  });
+  if(!r) return;
+
+  const { error } = await sb.rpc('nom035_accion_guardar', { p_id:id, p_datos:r });
+  if(error){ toast('error', error.message); return; }
+  toast('ok','Acción actualizada');
+  pintarPrograma();
+}
+
+async function nuevaAccion(progId){
+  const r = await modal({
+    titulo:'Nueva acción',
+    subtitulo:'Agrega una acción propia al programa.',
+    campos:[
+      { k:'accion', label:'Acción', t:'area', req:true },
+      { k:'dominio', label:'Responde al dominio', t:'texto',
+        nota:'Déjalo vacío si es una medida general.' },
+      { k:'nivel', label:'Nivel', t:'select',
+        opciones:[['organizacional','Organizacional'],['grupal','Grupal'],
+                  ['individual','Individual']], valor:'organizacional' }
+    ]
+  });
+  if(!r) return;
+  const { error } = await sb.rpc('nom035_accion_nueva', {
+    p_programa_id: progId, p_accion: r.accion,
+    p_dominio: r.dominio || null, p_nivel: r.nivel });
+  if(error){ toast('error', error.message); return; }
+  toast('ok','Acción agregada');
+  pintarPrograma();
+}
+
+/* Evidencia de difusión · 7.8 */
+async function verDifusion(){
+  const { data, error } = await sb.rpc('nom035_evidencia_difusion',
+    { p_campana_id: _cuCamp });
+  if(error){ toast('error', error.message); return; }
+
+  const url = location.origin + '/resultados.html';
+
+  panel({
+    titulo:'Difusión de resultados',
+    subtitulo:'Numeral 7.8 · evidencia de que la información llegó al personal',
+    html:
+      '<div class="aviso" style="margin-bottom:16px">'
+      + '<i class="fas fa-circle-info"></i>'
+      + '<div>Comparte esta dirección con el personal. Cada consulta se registra '
+      + 'con nombre y fecha: <b>esa bitácora es la evidencia de difusión</b>. '
+      + 'Un PDF en una carpeta no prueba que alguien lo abrió.</div></div>'
+      + '<div class="dif-url">'
+      + '<code>'+url+'</code>'
+      + '<button onclick="copiar(\''+url+'\')"><i class="fas fa-link"></i></button>'
+      + '</div>'
+      + '<div class="cu-kpis" style="margin-top:16px">'
+      + '<div class="cu-kpi"><b class="num">'+data.personas+'</b>'
+      + '<span>personas</span></div>'
+      + '<div class="cu-kpi"><b class="num">'+data.consultas+'</b>'
+      + '<span>consultas</span></div></div>'
+      + (data.detalle.length
+          ? '<h4 class="cu-h">Bitácora</h4><div class="cu-pend">'
+            + data.detalle.map(d =>
+                '<div class="cu-pend-f"><div><b>'+(d.nombre||'—')+'</b>'
+                + '<span>'+new Date(d.cuando).toLocaleString('es-MX')+'</span></div>'
+                + '</div>').join('')
+            + '</div>'
+          : '<p class="cu-nota" style="margin-top:14px">Nadie ha consultado los '
+            + 'resultados todavía. Comparte la dirección con el personal.</p>')
+  });
 }
