@@ -1067,6 +1067,156 @@ td.cal-fest{background:#FEF3E2}
   .eq-item{flex-wrap:wrap}
   .eq-meta{width:100%; justify-content:flex-start}
 }
+/* ── Cumplimiento / NOM-035 ── */
+.cu-head{display:flex; align-items:flex-start; justify-content:space-between;
+  gap:16px; margin-bottom:16px; flex-wrap:wrap}
+.cu-head h3{font-size:1rem; font-weight:800}
+.cu-head p{font-size:.8rem; color:var(--txt-3); margin-top:3px; max-width:520px;
+  line-height:1.5}
+.cu-h{font-size:.7rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--txt-3); margin:22px 0 7px}
+.cu-nota{font-size:.76rem; color:var(--txt-3); line-height:1.55; margin-bottom:10px}
+.cu-volver{
+  background:none; border:none; cursor:pointer; padding:0 0 12px;
+  font-family:inherit; font-size:.8rem; font-weight:700; color:var(--txt-3);
+  display:flex; align-items:center; gap:6px;
+}
+.cu-volver:hover{color:var(--brand-p)}
+
+.cu-vig{background:#FEF3E2; border-radius:var(--r-md); padding:14px 16px; margin-bottom:16px}
+.cu-vig h4{display:flex; align-items:center; gap:8px; font-size:.82rem;
+  font-weight:800; color:#92400E; margin-bottom:8px}
+.cu-vig-f{display:flex; justify-content:space-between; gap:14px; padding:4px 0;
+  font-size:.82rem}
+.cu-vig-f b{font-weight:700}
+.cu-vig-f span{font-weight:700; font-size:.78rem}
+
+.cu-camps{display:flex; flex-direction:column; gap:10px}
+.cu-camp{
+  background:var(--panel); border:1px solid var(--linea); border-radius:var(--r-md);
+  padding:15px 17px; cursor:pointer; transition:border-color .16s;
+}
+.cu-camp:hover{border-color:var(--brand)}
+.cu-camp-t{display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; margin-bottom:11px}
+.cu-camp-t b{display:block; font-size:.9rem; font-weight:800}
+.cu-camp-t span{font-size:.75rem; color:var(--txt-3)}
+.cu-est{font-size:.7rem; font-weight:800; padding:4px 10px; border-radius:99px;
+  text-transform:capitalize; flex-shrink:0}
+.cu-abierta{background:var(--brand-s); color:var(--brand-p)}
+.cu-cerrada{background:var(--linea-s); color:var(--txt-3)}
+.cu-borrador{background:#FEF3E2; color:#92400E}
+.cu-camp-p{display:flex; align-items:center; gap:12px}
+.cu-prog{flex:1; height:7px; background:var(--linea-s); border-radius:99px; overflow:hidden}
+.cu-prog div{height:100%; background:var(--brand); border-radius:99px;
+  transition:width .4s var(--ease)}
+.cu-prog.gr{height:10px; margin-bottom:6px}
+.cu-camp-p .num{font-size:.78rem; color:var(--txt-3); flex-shrink:0}
+.cu-camp-m{font-size:.73rem; color:#B45309; margin-top:8px}
+.cu-camp-m.ok{color:var(--ok)}
+
+.cu-kpis{display:flex; gap:11px; margin-bottom:14px; flex-wrap:wrap}
+.cu-kpi{flex:1; min-width:110px; background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:14px 16px}
+.cu-kpi b{display:block; font-size:1.7rem; font-weight:900; line-height:1}
+.cu-kpi span{font-size:.72rem; color:var(--txt-3); font-weight:600}
+.cu-kpi.ok b{color:var(--ok)}
+
+.cu-pend{display:flex; flex-direction:column; gap:5px}
+.cu-pend-f{display:flex; align-items:center; justify-content:space-between; gap:12px;
+  background:var(--panel); border:1px solid var(--linea); border-radius:10px;
+  padding:9px 13px}
+.cu-pend-f b{display:block; font-size:.83rem}
+.cu-pend-f span{font-size:.72rem; color:var(--txt-3)}
+.cu-pend-f button{background:var(--brand-s); border:none; cursor:pointer;
+  color:var(--brand-p); padding:7px 11px; border-radius:8px; font-size:.8rem}
+.cu-pend-f button:hover{background:var(--brand-b)}
+.cu-hechos{display:flex; flex-wrap:wrap; gap:6px}
+.cu-hechos span{font-size:.75rem; color:var(--txt-2); background:var(--linea-s);
+  padding:5px 11px; border-radius:99px}
+
+/* Dashboard */
+.da-top{display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap}
+.da-nivel, .da-riesgo{
+  flex:1; min-width:230px; border-radius:var(--r-lg); padding:18px 20px;
+  border:1.5px solid var(--linea); background:var(--panel);
+}
+.da-nivel span, .da-riesgo span{display:block; font-size:.73rem; font-weight:700;
+  color:var(--txt-3); text-transform:uppercase; letter-spacing:.05em}
+.da-nivel b, .da-riesgo b{display:block; font-size:2rem; font-weight:900;
+  line-height:1.1; margin:5px 0 4px}
+.da-nivel em, .da-riesgo em{font-size:.74rem; color:var(--txt-3); font-style:normal;
+  line-height:1.45; display:block}
+
+.da-card{background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:20px 22px; margin-bottom:14px}
+.da-card h4{font-size:.9rem; font-weight:800; margin-bottom:10px}
+
+.nv-barra{display:flex; border-radius:99px; overflow:hidden; background:var(--linea-s)}
+.nv-barra div{transition:width .4s var(--ease)}
+.nv-leyenda{display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:12px}
+.nv-leyenda span{display:inline-flex; align-items:center; gap:6px; font-size:.73rem;
+  color:var(--txt-3)}
+.nv-leyenda i{width:10px; height:10px; border-radius:3px; display:inline-block}
+.da-nums{display:flex; flex-wrap:wrap; gap:9px 18px; margin-top:13px}
+.da-nums span{display:inline-flex; align-items:center; gap:7px; font-size:.79rem;
+  color:var(--txt-2)}
+.da-nums i{width:10px; height:10px; border-radius:3px; display:inline-block}
+.da-nums b{font-weight:800}
+
+.da-doms{display:flex; flex-direction:column; gap:12px}
+.da-dom-t{display:flex; justify-content:space-between; align-items:baseline;
+  gap:12px; margin-bottom:5px}
+.da-dom-t span{font-size:.81rem; font-weight:600; color:var(--txt-2); line-height:1.35}
+.da-dom-t b{font-size:.79rem; font-weight:800; flex-shrink:0}
+/* La línea del umbral: un porcentaje sin su referencia obliga a
+   recordar el criterio de memoria. */
+.da-dom-b{position:relative}
+.da-umbral{position:absolute; top:-3px; bottom:-3px; width:2px;
+  background:rgba(13,19,33,.55); pointer-events:none}
+
+.da-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px}
+.da-chip{padding:6px 13px; border-radius:99px; border:none; cursor:pointer;
+  font-family:inherit; font-size:.78rem; font-weight:700;
+  background:var(--linea-s); color:var(--txt-2)}
+.da-chip:hover{background:var(--linea)}
+.da-chip.on{background:var(--brand); color:#062A26}
+
+.da-perf{display:flex; flex-direction:column; gap:11px}
+.da-perf-t{display:flex; justify-content:space-between; align-items:baseline;
+  gap:12px; margin-bottom:4px}
+.da-perf-t span{font-size:.82rem; font-weight:600; color:var(--txt-2)}
+.da-perf-t b{font-size:.82rem; font-weight:800}
+.da-perf-b{height:9px; background:var(--linea-s); border-radius:99px; overflow:hidden}
+.da-perf-b div{height:100%; border-radius:99px; transition:width .4s var(--ease)}
+.da-perf-n{display:block; font-size:.71rem; color:var(--txt-3); margin-top:3px}
+
+.da-g1{display:flex; gap:22px}
+.da-g1 div b{display:block; font-size:1.6rem; font-weight:900; line-height:1}
+.da-g1 div span{font-size:.73rem; color:var(--txt-3); font-weight:600}
+
+/* Informe */
+.inf h2{font-size:1.1rem; font-weight:900; margin-bottom:3px}
+.inf-sub{font-size:.78rem; color:var(--txt-3); margin-bottom:18px; line-height:1.5}
+.inf h3{font-size:.85rem; font-weight:800; margin:20px 0 7px;
+  padding-bottom:4px; border-bottom:1px solid var(--linea)}
+.inf h4{font-size:.79rem; font-weight:800; margin:14px 0 6px; color:var(--txt-2)}
+.inf p{font-size:.82rem; line-height:1.6; margin-bottom:9px; color:var(--txt-2)}
+.inf-t{width:100%; border-collapse:collapse; margin-bottom:10px; font-size:.78rem}
+.inf-t td, .inf-t th{border:1px solid var(--linea); padding:6px 9px; text-align:left}
+.inf-t th{background:var(--linea-s); font-weight:800}
+.inf-t td:first-child{width:40%; color:var(--txt-3)}
+.inf-blank{background:var(--linea-s)}
+.inf-crit{font-size:.76rem !important; background:var(--linea-s);
+  padding:9px 11px; border-radius:8px; color:var(--txt-3) !important}
+.inf-pie{font-size:.7rem; color:var(--txt-3); text-align:right; margin-top:20px}
+
+@media(max-width:640px){
+  .da-top{flex-direction:column}
+  .cu-kpis{gap:8px}
+  .cu-kpi{min-width:0}
+  .da-g1{gap:16px}
+}
 </style>
 </head>
 <body>
@@ -1166,6 +1316,7 @@ td.cal-fest{background:#FEF3E2}
 <script src="js/modulos/documentos.js"></script>
 <script src="js/modulos/incidencias.js"></script>
 <script src="js/modulos/organigrama.js"></script>
+<script src="js/modulos/cumplimiento.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -1187,7 +1338,7 @@ const MODULOS = [
     { id:'empleados',  nombre:'Empleados',   icono:'fa-users',          roles:'jefe' },
     { id:'organigrama',nombre:'Mi equipo',   icono:'fa-sitemap',        roles:'jefe' },
     { id:'turnos',     nombre:'Turnos',      icono:'fa-clock-rotate-left', roles:'admin' },
-    { id:'nom035',     nombre:'NOM-035',     icono:'fa-shield-halved',  roles:'admin' }
+    { id:'cumplimiento', nombre:'Cumplimiento', icono:'fa-shield-halved', roles:'admin' }
   ]},
   { grupo:'Administración', items:[
     { id:'config',     nombre:'Configuraci&oacute;n', icono:'fa-sliders', roles:'admin' },
@@ -1257,7 +1408,8 @@ const RUTAS = {
   turnos:      () => moduloTurnos(),
   incidencias: () => moduloIncidencias(),
   vacaciones:   () => moduloVacaciones(),
-  organigrama:  () => moduloOrganigrama()
+  organigrama:   () => moduloOrganigrama(),
+  cumplimiento:  () => moduloCumplimiento()
 };
 
 function pintarModulo(id){
