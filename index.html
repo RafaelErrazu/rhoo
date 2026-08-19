@@ -1246,6 +1246,27 @@ td.cal-fest{background:#FEF3E2}
 .dif-url code{flex:1; font-size:.79rem; color:var(--txt-2); word-break:break-all}
 .dif-url button{background:var(--brand-s); border:none; cursor:pointer;
   color:var(--brand-p); padding:7px 11px; border-radius:8px; flex-shrink:0}
+/* ── Proveedor ── */
+.pv-lista{display:flex; flex-direction:column; gap:9px}
+.pv-cli{
+  background:var(--panel); border:1px solid var(--linea); border-radius:var(--r-md);
+  padding:14px 16px; cursor:pointer; transition:border-color .16s;
+}
+.pv-cli:hover{border-color:var(--brand)}
+.pv-cli.susp{background:#FEF7F7; border-color:#FECACA}
+.pv-cli-t{display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; margin-bottom:10px}
+.pv-cli-t b{display:block; font-size:.92rem; font-weight:800}
+.pv-cli-t span{font-size:.74rem; color:var(--txt-3)}
+.pv-cli-m{display:flex; flex-wrap:wrap; gap:7px 16px}
+.pv-cli-m span{font-size:.75rem; color:var(--txt-3)}
+.pv-cli-m b{color:var(--txt); font-weight:800}
+.pv-cli-m span.lleno b{color:#B91C1C}
+.pv-cli-m span.frio{color:#B45309}
+.pv-feat{background:var(--brand-s); color:var(--brand-p) !important;
+  padding:2px 9px; border-radius:99px; font-size:.7rem !important; font-weight:700}
+.pv-lleno{font-size:.74rem; color:#B91C1C; margin-top:8px}
+.cu-kpi.alerta b{color:#B45309}
 </style>
 </head>
 <body>
@@ -1346,6 +1367,7 @@ td.cal-fest{background:#FEF3E2}
 <script src="js/modulos/incidencias.js"></script>
 <script src="js/modulos/organigrama.js"></script>
 <script src="js/modulos/cumplimiento.js"></script>
+<script src="js/modulos/proveedor.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -1369,6 +1391,9 @@ const MODULOS = [
     { id:'turnos',     nombre:'Turnos',      icono:'fa-clock-rotate-left', roles:'admin' },
     { id:'cumplimiento', nombre:'Cumplimiento', icono:'fa-shield-halved', roles:'admin' }
   ]},
+  { grupo:'Proveedor', items:[
+    { id:'proveedor', nombre:'Clientes', icono:'fa-building', roles:'proveedor' }
+  ]},
   { grupo:'Administración', items:[
     { id:'config',     nombre:'Configuraci&oacute;n', icono:'fa-sliders', roles:'admin' },
     { id:'usuarios',   nombre:'Usuarios',    icono:'fa-user-gear',      roles:'admin' }
@@ -1378,9 +1403,12 @@ const MODULOS = [
 let moduloActivo = 'inicio';
 
 function puedeVer(roles){
-  if(roles === '*')     return true;
-  if(roles === 'jefe')  return Sesion.esJefe;
-  if(roles === 'admin') return Sesion.esAdmin;
+  if(roles === '*')         return true;
+  if(roles === 'jefe')      return Sesion.esJefe;
+  if(roles === 'admin')     return Sesion.esAdmin;
+  // Solo el proveedor. El menú es cosmético: lo que de verdad
+  // protege es que las funciones validan app.es_proveedor().
+  if(roles === 'proveedor') return Sesion.rol === 'superadmin';
   return false;
 }
 
@@ -1438,7 +1466,8 @@ const RUTAS = {
   incidencias: () => moduloIncidencias(),
   vacaciones:   () => moduloVacaciones(),
   organigrama:   () => moduloOrganigrama(),
-  cumplimiento:  () => moduloCumplimiento()
+  cumplimiento:  () => moduloCumplimiento(),
+  proveedor:     () => moduloProveedor()
 };
 
 function pintarModulo(id){
