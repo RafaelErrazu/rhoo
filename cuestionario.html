@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuestionario NOM-035</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0D1321">
+<link rel="icon" href="img/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#2EC4B6; --brand-h:#26A69A; --brand-s:#E6F7F5; --brand-b:#A8E4DE;
+  --acento:#F4795B; --tinta:#0D1321;
+  --fondo:#F7FAFA; --panel:#FFF; --linea:#E4EAEA; --linea-s:#F0F4F4;
+  --txt:#0D1321; --txt-2:#4A5568; --txt-3:#8494A7;
+  --ok:#14A085; --error:#DC2626;
+  --r:12px; --r-lg:18px;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+body{
+  font-family:'Nunito',system-ui,sans-serif; background:var(--fondo);
+  color:var(--txt); min-height:100vh; min-height:100dvh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Barra de progreso fija: en 72 preguntas, no saber cuánto falta
+   es la razón número uno de abandono. */
+.top{
+  position:fixed; top:0; left:0; right:0; z-index:10;
+  background:rgba(13,19,33,.97); padding:11px 16px;
+  display:flex; align-items:center; gap:13px;
+}
+.top img{height:26px}
+.barra{flex:1; height:5px; background:rgba(255,255,255,.13); border-radius:99px;
+  overflow:hidden; max-width:340px}
+.barra div{height:100%; background:var(--brand); border-radius:99px;
+  transition:width .35s var(--ease)}
+.top span{font-size:.72rem; color:rgba(255,255,255,.6); font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+
+.wrap{max-width:600px; margin:0 auto; padding:74px 16px 90px}
+
+/* Pantallas */
+.pant{display:none; animation:sube .35s var(--ease) both}
+.pant.on{display:block}
+@keyframes sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.card{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:28px 24px;
+}
+.card h1{font-size:1.3rem; font-weight:900; line-height:1.25; margin-bottom:10px}
+.card h2{font-size:1.05rem; font-weight:800; margin-bottom:8px}
+.card p{font-size:.88rem; color:var(--txt-2); line-height:1.6; margin-bottom:14px}
+
+/* El aviso de confidencialidad no es adorno: es la diferencia
+   entre respuestas sinceras y respuestas defensivas. */
+.aviso{
+  display:flex; gap:11px; align-items:flex-start;
+  background:var(--brand-s); border-radius:var(--r); padding:14px 16px;
+  font-size:.83rem; color:var(--txt-2); line-height:1.55; margin-bottom:16px;
+}
+.aviso b{color:var(--txt)}
+.aviso svg{flex-shrink:0; margin-top:2px}
+
+.btn{
+  width:100%; padding:15px; border:none; border-radius:var(--r); cursor:pointer;
+  background:var(--brand); color:#062A26;
+  font-family:inherit; font-size:.97rem; font-weight:800;
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  transition:background-color .18s, transform .12s;
+}
+.btn:hover{background:#3AD4C6}
+.btn:active{transform:scale(.99)}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+.btn-2{background:var(--linea-s); color:var(--txt-2); margin-top:9px}
+.btn-2:hover{background:var(--linea)}
+
+/* Pregunta */
+.preg-meta{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; margin-bottom:12px;
+}
+.preg-num{font-size:.7rem; font-weight:800; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--brand-h)}
+.preamb{
+  font-size:.8rem; color:var(--txt-2); line-height:1.55;
+  background:var(--linea-s); border-radius:10px; padding:11px 13px; margin-bottom:14px;
+}
+.preg{font-size:1.08rem; font-weight:700; line-height:1.45; margin-bottom:20px}
+
+.ops{display:flex; flex-direction:column; gap:8px}
+.op{
+  display:flex; align-items:center; gap:12px; min-height:54px;
+  padding:14px 16px; cursor:pointer;
+  background:var(--panel); border:2px solid var(--linea); border-radius:var(--r);
+  font-size:.92rem; font-weight:600; color:var(--txt-2);
+  transition:border-color .15s, background-color .15s, transform .1s;
+  -webkit-tap-highlight-color:transparent; user-select:none;
+}
+.op:hover{border-color:var(--brand-b); background:#FAFEFE}
+.op:active{transform:scale(.995)}
+.op.sel{border-color:var(--brand); background:var(--brand-s); color:var(--brand-h); font-weight:800}
+.op .mk{
+  width:20px; height:20px; border-radius:50%; flex-shrink:0;
+  border:2px solid var(--linea); display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.op.sel .mk{border-color:var(--brand); background:var(--brand)}
+.op.sel .mk::after{content:''; width:7px; height:7px; border-radius:50%; background:#fff}
+
+/* Navegación inferior */
+.nav{
+  position:fixed; bottom:0; left:0; right:0; z-index:10;
+  background:rgba(255,255,255,.96); backdrop-filter:blur(8px);
+  border-top:1px solid var(--linea); padding:11px 16px;
+  display:none; align-items:center; justify-content:space-between; gap:14px;
+}
+.nav.on{display:flex}
+.nav button{
+  background:none; border:none; cursor:pointer; padding:9px 13px;
+  font-family:inherit; font-size:.83rem; font-weight:700; color:var(--txt-3);
+  border-radius:9px;
+}
+.nav button:hover{color:var(--brand-h); background:var(--brand-s)}
+.nav button:disabled{opacity:.3; cursor:not-allowed}
+.nav span{font-size:.76rem; color:var(--txt-3); font-variant-numeric:tabular-nums}
+
+/* Sección de Guía I */
+.sec-tit{
+  font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--acento); margin-bottom:7px;
+}
+.instr{
+  font-size:.9rem; font-weight:600; color:var(--txt); line-height:1.55;
+  margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--linea-s);
+}
+
+/* Cierre */
+.fin{text-align:center; padding:20px 0}
+.fin-ico{
+  width:76px; height:76px; border-radius:50%; margin:0 auto 18px;
+  background:var(--brand-s); display:flex; align-items:center; justify-content:center;
+}
+.fin h1{font-size:1.35rem; font-weight:900; margin-bottom:10px}
+.fin p{font-size:.9rem; color:var(--txt-2); line-height:1.6; max-width:400px; margin:0 auto 14px}
+.res{
+  display:inline-block; padding:10px 22px; border-radius:99px;
+  font-size:.9rem; font-weight:800; margin-top:6px;
+}
+.canaliza{
+  background:#FEF3E2; border-radius:var(--r); padding:16px;
+  font-size:.85rem; color:#92400E; line-height:1.6; margin-top:20px; text-align:left;
+}
+
+.err{
+  background:#FEF2F2; border:1px solid #FECACA; border-radius:var(--r);
+  padding:15px 17px; font-size:.87rem; color:#B91C1C; line-height:1.55;
+}
+
+.campos{display:flex; flex-direction:column; gap:15px}
+.campo label{display:block; font-size:.8rem; font-weight:700;
+  color:var(--txt-2); margin-bottom:5px}
+.campo select, .campo input{
+  width:100%; font-family:inherit; font-size:.9rem; padding:11px 13px;
+  border:1.5px solid var(--linea); border-radius:10px; background:var(--panel);
+  color:var(--txt);
+}
+.campo select:focus, .campo input:focus{outline:none; border-color:var(--brand)}
+
+@media(max-width:480px){
+  .wrap{padding:70px 12px 86px}
+  .card{padding:22px 18px}
+  .preg{font-size:1rem}
+  .op{min-height:50px; padding:12px 14px; font-size:.88rem}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img src="img/logo-completo.svg" alt="RHoo!">
+  <div class="barra"><div id="pg" style="width:0%"></div></div>
+  <span id="pgt"></span>
+</header>
+
+<div class="wrap">
+
+  <!-- Carga -->
+  <div class="pant on" id="p-carga">
+    <div class="card"><p style="text-align:center;margin:0">Cargando...</p></div>
+  </div>
+
+  <!-- Error -->
+  <div class="pant" id="p-error">
+    <div class="card"><div class="err" id="err-txt"></div></div>
+  </div>
+
+  <!-- Bienvenida -->
+  <div class="pant" id="p-inicio">
+    <div class="card">
+      <h1>Cuestionario NOM-035</h1>
+      <p>Este cuestionario identifica factores de riesgo psicosocial en el
+         trabajo, conforme a la Norma Oficial Mexicana NOM-035-STPS-2018.</p>
+
+      <div class="aviso">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <div>
+          <b>Tus respuestas son confidenciales.</b> Solo el área de Recursos
+          Humanos tiene acceso, y los resultados se publican de forma
+          agrupada: nadie puede saber qué contestaste tú.
+        </div>
+      </div>
+
+      <p><b>Antes de empezar:</b> no hay respuestas correctas ni incorrectas.
+         Piensa en cómo han sido las cosas <b>en los últimos dos meses</b> y
+         contesta con sinceridad. Toma unos <span id="mins">10</span> minutos.</p>
+
+      <p style="font-size:.82rem;color:var(--txt-3)">Si te interrumpen, puedes
+         cerrar y volver con el mismo enlace: se guarda tu avance.</p>
+
+      <button class="btn" onclick="arrancar()">Comenzar</button>
+    </div>
+  </div>
+
+  <!-- Pregunta -->
+  <div class="pant" id="p-preg">
+    <div class="card" id="preg-card"></div>
+  </div>
+
+  <!-- Ficha Guía V -->
+  <div class="pant" id="p-ficha">
+    <div class="card">
+      <h2>Últimos datos</h2>
+      <p>Sirven para analizar los resultados por grupo (turno, puesto,
+         antigüedad). No se usan para identificarte.</p>
+      <div class="campos" id="ficha-campos"></div>
+      <button class="btn" style="margin-top:20px" onclick="enviar()">Finalizar</button>
+    </div>
+  </div>
+
+  <!-- Cierre -->
+  <div class="pant" id="p-fin">
+    <div class="card fin" id="fin-card"></div>
+  </div>
+
+</div>
+
+<div class="nav" id="nav">
+  <button id="b-atras" onclick="atras()">Anterior</button>
+  <span id="nav-txt"></span>
+  <button id="b-salta" onclick="siguiente()" style="visibility:hidden">Siguiente</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   Cuestionario NOM-035 · página pública
+   ═══════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const TOKEN = new URLSearchParams(location.search).get('t');
+
+let D = null;           // datos del cuestionario
+let pasos = [];         // lista plana de pasos
+let paso = 0;
+let resp = { guia1:{}, items:{}, clientes:null, jefe:null, ficha:{} };
+
+// El avance se guarda en el dispositivo: 72 preguntas en un
+// celular con mala señal se interrumpen, y volver a empezar de
+// cero es la razón por la que la gente abandona.
+const LS = 'rhoo_nom035_' + (TOKEN || '');
+function guardar(){
+  try{ localStorage.setItem(LS, JSON.stringify({ resp, paso })); }catch(e){}
+}
+function recuperar(){
+  try{
+    const v = JSON.parse(localStorage.getItem(LS) || 'null');
+    if(v){ resp = v.resp; paso = v.paso || 0; return true; }
+  }catch(e){}
+  return false;
+}
+
+function ver(id){
+  document.querySelectorAll('.pant').forEach(p => p.classList.remove('on'));
+  $(id).classList.add('on');
+  $('nav').classList.toggle('on', id === 'p-preg');
+  window.scrollTo(0,0);
+}
+
+function fallo(msg){ $('err-txt').textContent = msg; ver('p-error'); }
+
+async function iniciar(){
+  if(!TOKEN){ fallo('Falta el enlace de acceso. Solicítalo a Recursos Humanos.'); return; }
+
+  const { data, error } = await sb.rpc('nom035_abrir_cuestionario', { p_token: TOKEN });
+  if(error){ fallo('No se pudo abrir el cuestionario. Revisa tu conexión.'); return; }
+  if(data.status !== 'success'){ fallo(data.message); return; }
+
+  D = data;
+  const n = (D.items||[]).length;
+  $('mins').textContent = n > 60 ? '15' : n > 40 ? '10' : '5';
+
+  if(recuperar() && paso > 0){
+    armarPasos();
+    ver('p-preg');
+    pintar();
+  } else {
+    ver('p-inicio');
+  }
+}
+
+/* Los pasos se arman una vez y se recalculan cuando cambian los
+   filtros: si el trabajador dice que no atiende clientes, esos
+   ítems desaparecen de la secuencia en lugar de saltarse uno por
+   uno (que se siente como si la app fallara). */
+function armarPasos(){
+  pasos = [];
+
+  // Guía I: sección 1 siempre
+  const g1 = D.guia1;
+  const s1 = (g1.secciones||[]).find(s => s.numero === 1);
+  if(s1){
+    s1.preguntas.forEach(p => pasos.push({
+      t:'g1', clave:p.clave, texto:p.texto,
+      sec:s1.titulo, instr:s1.instruccion }));
+  }
+
+  // Secciones II a IV solo si hubo algún "Sí" en la I
+  const hubo = s1 && s1.preguntas.some(p => resp.guia1[p.clave] === 'Si');
+  if(hubo){
+    (g1.secciones||[]).filter(s => s.numero > 1).forEach(s => {
+      s.preguntas.forEach(p => pasos.push({
+        t:'g1', clave:p.clave, texto:p.texto,
+        sec:s.titulo, instr:s.instruccion }));
+    });
+  }
+
+  if(!D.aplica_frp) return;
+
+  // Filtros: determinan qué ítems condicionales aplican
+  pasos.push({ t:'filtro', k:'clientes',
+    texto:'En mi trabajo debo brindar servicio a clientes o usuarios',
+    nota:'Por ejemplo: pacientes, estudiantes, clientes, público en general.' });
+  pasos.push({ t:'filtro', k:'jefe',
+    texto:'Soy jefe de otros trabajadores',
+    nota:'Es decir, hay personas que te reportan directamente.' });
+
+  (D.items||[]).forEach(it => {
+    if(it.condicional === 'clientes' && resp.clientes !== true) return;
+    if(it.condicional === 'jefe' && resp.jefe !== true) return;
+    pasos.push({ t:'item', ...it });
+  });
+}
+
+function arrancar(){
+  armarPasos();
+  paso = 0;
+  ver('p-preg');
+  pintar();
+}
+
+function pintar(){
+  if(paso >= pasos.length){ verFicha(); return; }
+
+  const p = pasos[paso];
+  const total = pasos.length;
+  const pct = Math.round(paso / total * 100);
+  $('pg').style.width = pct + '%';
+  $('pgt').textContent = (paso+1) + '/' + total;
+  $('nav-txt').textContent = pct + '%';
+  $('b-atras').disabled = paso === 0;
+
+  const c = $('preg-card');
+
+  if(p.t === 'g1'){
+    // Guía I y filtros son Sí/No
+    const val = resp.guia1[p.clave];
+    c.innerHTML =
+      '<p class="sec-tit">' + esc(p.sec) + '</p>'
+      + (p.instr ? '<p class="instr">' + esc(p.instr) + '</p>' : '')
+      + '<p class="preg">' + esc(p.texto) + '</p>'
+      + '<div class="ops">'
+      + ['Sí','No'].map(o =>
+          '<div class="op' + (val === (o==='Sí'?'Si':'No') ? ' sel':'') + '" '
+          + 'onclick="marcaG1(\'' + p.clave + '\',\'' + (o==='Sí'?'Si':'No') + '\')">'
+          + '<span class="mk"></span>' + o + '</div>').join('')
+      + '</div>';
+
+  } else if(p.t === 'filtro'){
+    const val = resp[p.k];
+    c.innerHTML =
+      '<p class="sec-tit">Sobre tu puesto</p>'
+      + '<p class="preg">' + esc(p.texto) + '</p>'
+      + '<p style="font-size:.82rem;color:var(--txt-3);margin:-12px 0 18px">'
+      + esc(p.nota) + '</p>'
+      + '<div class="ops">'
+      + [['Sí',true],['No',false]].map(([t,v]) =>
+          '<div class="op' + (val === v ? ' sel':'') + '" '
+          + 'onclick="marcaFiltro(\'' + p.k + '\',' + v + ')">'
+          + '<span class="mk"></span>' + t + '</div>').join('')
+      + '</div>';
+
+  } else {
+    const val = resp.items[p.numero];
+    c.innerHTML =
+      '<div class="preg-meta"><span class="preg-num">Pregunta ' + (paso+1) + '</span></div>'
+      + (p.preambulo ? '<p class="preamb">' + esc(p.preambulo) + '</p>' : '')
+      + '<p class="preg">' + esc(p.pregunta) + '</p>'
+      + '<div class="ops">'
+      + D.opciones.map((o,idx) =>
+          '<div class="op' + (val === idx ? ' sel':'') + '" '
+          + 'onclick="marcaItem(' + p.numero + ',' + idx + ')">'
+          + '<span class="mk"></span>' + o + '</div>').join('')
+      + '</div>';
+  }
+}
+
+function esc(s){
+  return (s==null?'':String(s))
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* Avance automático al responder: en 72 preguntas, obligar a
+   tocar "Siguiente" cada vez duplica los toques. Se deja un
+   instante para que se vea la selección. */
+let bloqueo = false;
+function avanza(){
+  bloqueo = true;
+  guardar();
+  setTimeout(() => { bloqueo = false; paso++; pintar(); }, 180);
+}
+
+function marcaG1(clave, val){
+  if(bloqueo) return;
+  resp.guia1[clave] = val;
+  document.querySelectorAll('.op').forEach(o => o.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+
+  // Si era la última de la Sección I, se rearman los pasos: la
+  // ramificación depende de esa respuesta.
+  const p = pasos[paso];
+  const esUltimaS1 = p.clave === 's1_6';
+  if(esUltimaS1){
+    setTimeout(() => {
+      const antes = pasos.length;
+      armarPasos();
+      paso++;
+      pintar();
+    }, 180);
+    guardar();
+    return;
+  }
+  avanza();
+}
+
+function marcaFiltro(k, val){
+  if(bloqueo) return;
+  resp[k] = val;
+  document.querySelectorAll('.op').forEach(o => o.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  // Rearmar: los ítems condicionales entran o salen
+  setTimeout(() => { armarPasos(); paso++; pintar(); }, 180);
+  guardar();
+}
+
+function marcaItem(num, val){
+  if(bloqueo) return;
+  resp.items[num] = val;
+  document.querySelectorAll('.op').forEach(o => o.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  avanza();
+}
+
+function atras(){ if(paso > 0){ paso--; pintar(); guardar(); } }
+function siguiente(){ paso++; pintar(); }
+
+/* Ficha Guía V */
+const FICHA = [
+  ['sexo','Sexo',['Hombre','Mujer']],
+  ['edad','Edad',['Menos de 20','20 a 29','30 a 39','40 a 49','50 a 59','60 o más']],
+  ['antiguedad','Antigüedad en la empresa',
+    ['Menos de 1 año','1 a 5 años','6 a 10 años','11 a 15 años','Más de 15 años']],
+  ['tipo_puesto','Tipo de puesto',
+    ['Operativo','Supervisor','Profesional o técnico','Gerente o dirección']],
+  ['turno','Turno',['Diurno','Nocturno','Mixto','Rotativo']],
+  ['rota','¿Rotas turnos?',['Sí','No']]
+];
+
+function verFicha(){
+  $('pg').style.width = '100%';
+  $('pgt').textContent = 'Último paso';
+  $('ficha-campos').innerHTML = FICHA.map(([k,label,ops]) =>
+    '<div class="campo"><label>' + label + '</label>'
+    + '<select id="f-' + k + '">'
+    + '<option value="">Prefiero no decir</option>'
+    + ops.map(o => '<option value="' + o + '"'
+        + (resp.ficha[k] === o ? ' selected':'') + '>' + o + '</option>').join('')
+    + '</select></div>').join('');
+  ver('p-ficha');
+}
+
+async function enviar(){
+  FICHA.forEach(([k]) => {
+    const v = $('f-' + k).value;
+    if(v) resp.ficha[k] = v;
+  });
+
+  const btn = document.querySelector('#p-ficha .btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const items = Object.entries(resp.items)
+    .map(([numero, valor]) => ({ numero: Number(numero), valor }));
+
+  const { data, error } = await sb.rpc('nom035_guardar', {
+    p_token: TOKEN,
+    p_guia1: resp.guia1,
+    p_items: items,
+    p_clientes: resp.clientes,
+    p_jefe: resp.jefe,
+    p_datos: resp.ficha
+  });
+
+  if(error || data.status !== 'success'){
+    btn.disabled = false;
+    btn.textContent = 'Finalizar';
+    fallo((data && data.message) || 'No se pudieron enviar tus respuestas. Intenta de nuevo.');
+    return;
+  }
+
+  try{ localStorage.removeItem(LS); }catch(e){}
+
+  const COL = {
+    'Nulo':'#8494A7','Bajo':'#14A085','Medio':'#D97706',
+    'Alto':'#EA580C','Muy alto':'#B91C1C'
+  };
+  const niv = data.nivel;
+
+  $('fin-card').innerHTML =
+    '<div class="fin-ico">'
+    + '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#14A085" '
+    + 'stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>'
+    + '<h1>Listo, gracias</h1>'
+    + '<p>Tus respuestas quedaron registradas de forma confidencial.</p>'
+    + (niv
+        ? '<p style="margin-bottom:4px;font-size:.82rem;color:var(--txt-3)">'
+          + 'Tu resultado personal</p>'
+          + '<div class="res" style="color:' + (COL[niv]||'#4A5568')
+          + ';background:' + (COL[niv]||'#4A5568') + '1a">' + niv + '</div>'
+        : '')
+    + (data.requiere_valoracion
+        ? '<div class="canaliza"><b>Importante.</b> Por tus respuestas, el área '
+          + 'de salud ocupacional te va a contactar para ofrecerte apoyo. '
+          + 'No es un problema laboral ni afecta tu trabajo: es atención a la '
+          + 'que tienes derecho.</div>'
+        : '');
+  ver('p-fin');
+  $('pgt').textContent = '';
+}
+
+iniciar();
+</script>
+</body>
+</html>
