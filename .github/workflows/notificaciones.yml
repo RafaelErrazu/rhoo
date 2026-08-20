@@ -1,0 +1,30 @@
+name: Notificaciones diarias
+on:
+  schedule:
+    # 13:00 UTC = 07:00 hora del centro de México.
+    # Temprano a proposito: un cumpleaños notificado a las 6 PM
+    # ya no sirve para felicitar a nadie.
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generar notificaciones
+        run: |
+          set -eu
+          R=$(curl -sS -w '\n%{http_code}' -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/generar_notificaciones" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" -d '{}')
+          CODIGO=$(echo "$R" | tail -n1)
+          CUERPO=$(echo "$R" | head -n-1)
+          echo "$CUERPO"
+          if [ "$CODIGO" != "200" ]; then
+            echo "::error::Fallo con codigo $CODIGO"
+            exit 1
+          fi
+          echo "### Notificaciones generadas" >> $GITHUB_STEP_SUMMARY
+          echo "\`$CUERPO\`" >> $GITHUB_STEP_SUMMARY
