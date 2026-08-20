@@ -1581,7 +1581,7 @@ async function cargarSesion(user){
 
   const { data: perfil, error } = await sb
     .from('perfiles')
-    .select('id, tenant_id, rol, nombre, email, empleado_id, debe_cambiar_password')
+    .select('id, tenant_id, rol, nombre, email, empleado_id, debe_cambiar_password, activo')
     .eq('id', user.id)
     .single();
 
@@ -1589,6 +1589,17 @@ async function cargarSesion(user){
     $('carga').classList.add('off');
     $('login').style.display = 'flex';
     errLogin('Tu cuenta no tiene un perfil asignado. Contacta al administrador.');
+    await sb.auth.signOut();
+    return;
+  }
+  // Un usuario desactivado no debe pasar del login. RLS ya le
+  // bloquea los datos, pero sin esto entra a una app vacía y
+  // parece que el sistema está roto en lugar de que su cuenta
+  // fue dada de baja.
+  if(perfil.activo === false){
+    $('carga').classList.add('off');
+    $('login').style.display = 'flex';
+    errLogin('Tu cuenta está desactivada. Contacta a Recursos Humanos.');
     await sb.auth.signOut();
     return;
   }
