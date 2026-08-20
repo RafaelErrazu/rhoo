@@ -1,0 +1,146 @@
+# ═══════════════════════════════════════════════════════════
+#  RHoo! · Respaldo semanal de la base a Cloudflare R2
+#
+#  Corre en GitHub Actions y no en una máquina local: un
+#  respaldo que depende de que tu PC esté encendida no es un
+#  respaldo.
+# ═══════════════════════════════════════════════════════════
+name: Respaldo de base de datos
+
+on:
+  schedule:
+    # Domingos 08:00 UTC = 02:00 hora del centro de México.
+    # De madrugada del domingo: el momento de menor uso.
+    - cron: '0 8 * * 0'
+  # Permite dispararlo a mano antes de una migración grande
+  workflow_dispatch:
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Instalar PostgreSQL 17
+        run: |
+          # La versión de pg_dump debe ser >= a la del servidor,
+          # o rechaza el volcado por incompatibilidad.
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt \
+            $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-client-17
+
+      - name: Generar el volcado
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          FECHA=$(date -u +%Y-%m-%d)
+          ARCHIVO="rhoo-${FECHA}.sql.gz"
+          echo "ARCHIVO=${ARCHIVO}" >> $GITHUB_ENV
+          echo "FECHA=${FECHA}" >> $GITHUB_ENV
+
+          # --schema: se incluye AUTH a propósito. Un dump que
+          # omite auth.users restaura la base pero deja los
+          # perfiles apuntando a usuarios inexistentes: nadie
+          # puede entrar y el respaldo resulta inútil justo
+          # cuando se necesita.
+          pg_dump "$DB_URL" \
+            --schema=public \
+            --schema=app \
+            --schema=auth \
+            --schema=storage \
+            --no-owner \
+            --no-privileges \
+            --clean \
+            --if-exists \
+            | gzip -9 > "$ARCHIVO"
+
+          ls -lh "$ARCHIVO"
+
+      - name: Verificar que el respaldo sirve
+        run: |
+          set -euo pipefail
+          TAM=$(stat -c%s "$ARCHIVO")
+          echo "Tamaño: ${TAM} bytes"
+
+          # Un archivo de 0 bytes subido puntualmente cada semana
+          # es peor que no tener respaldo: da falsa tranquilidad.
+          if [ "$TAM" -lt 10240 ]; then
+            echo "::error::El respaldo pesa menos de 10 KB. Algo falló."
+            exit 1
+          fi
+
+          # Y que contenga de verdad las tablas que importan
+          for TABLA in empleados perfiles tenants nom035_respuestas checadas; do
+            if ! zcat "$ARCHIVO" | grep -q "CREATE TABLE public.${TABLA}"; then
+              echo "::error::Falta la tabla ${TABLA} en el respaldo."
+              exit 1
+            fi
+          done
+
+          if ! zcat "$ARCHIVO" | grep -q "CREATE TABLE auth.users"; then
+            echo "::error::Falta auth.users. Sin eso nadie podría entrar tras restaurar."
+            exit 1
+          fi
+
+          echo "Respaldo verificado."
+
+      - name: Subir a R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          DIA=$(date -u +%d)
+
+          aws s3 cp "$ARCHIVO" "s3://${BUCKET}/semanal/${ARCHIVO}" \
+            --endpoint-url "$ENDPOINT"
+
+          # El primer domingo del mes se guarda además como
+          # mensual: la retención escalonada mantiene "el de hace
+          # seis meses" sin conservar los 25 intermedios.
+          if [ "$DIA" -le 07 ]; then
+            aws s3 cp "$ARCHIVO" "s3://${BUCKET}/mensual/$(date -u +%Y-%m).sql.gz" \
+              --endpoint-url "$ENDPOINT"
+            echo "Copia mensual guardada."
+          fi
+
+      - name: Limpiar respaldos viejos
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          # 52 semanales y 12 mensuales. Guardar todo para siempre
+          # cuesta y no sirve: lo que se necesita es el de la
+          # semana pasada y el de hace medio año.
+          borrar() {
+            local PREFIJO=$1
+            local CONSERVAR=$2
+            aws s3 ls "s3://${BUCKET}/${PREFIJO}/" --endpoint-url "$ENDPOINT" \
+              | awk '{print $4}' | sort | head -n -${CONSERVAR} \
+              | while read -r F; do
+                  [ -z "$F" ] && continue
+                  echo "Borrando ${PREFIJO}/${F}"
+                  aws s3 rm "s3://${BUCKET}/${PREFIJO}/${F}" --endpoint-url "$ENDPOINT"
+                done
+          }
+          borrar semanal 52
+          borrar mensual 12
+
+      - name: Resumen
+        run: |
+          echo "### Respaldo completado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Archivo: \`${ARCHIVO}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Tamaño: $(du -h "$ARCHIVO" | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Destino: \`semanal/\`" >> $GITHUB_STEP_SUMMARY
