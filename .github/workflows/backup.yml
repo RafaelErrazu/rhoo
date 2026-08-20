@@ -133,20 +133,23 @@ jobs:
           ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           BUCKET: ${{ secrets.R2_BUCKET }}
         run: |
-          set -euo pipefail
-          # 52 semanales y 12 mensuales. Guardar todo para siempre
-          # cuesta y no sirve: lo que se necesita es el de la
-          # semana pasada y el de hace medio año.
+          set -eu
+          # Sin pipefail: con pocos respaldos, head -n -N sobre una
+          # lista corta cierra la tuberia y se lee como fallo,
+          # cuando en realidad no habia nada que borrar.
           borrar() {
-            local PREFIJO=$1
-            local CONSERVAR=$2
-            aws s3 ls "s3://${BUCKET}/${PREFIJO}/" --endpoint-url "$ENDPOINT" \
-              | awk '{print $4}' | sort | head -n -${CONSERVAR} \
-              | while read -r F; do
-                  [ -z "$F" ] && continue
-                  echo "Borrando ${PREFIJO}/${F}"
-                  aws s3 rm "s3://${BUCKET}/${PREFIJO}/${F}" --endpoint-url "$ENDPOINT"
-                done
+            PREFIJO=$1
+            CONSERVAR=$2
+            aws s3 ls "s3://${BUCKET}/${PREFIJO}/" --endpoint-url "$ENDPOINT" 2>/dev/null \
+              | awk '{print $4}' | grep -v '^$' | sort > /tmp/lista.txt || true
+            TOTAL=$(wc -l < /tmp/lista.txt)
+            echo "${PREFIJO}: ${TOTAL} respaldo(s), se conservan ${CONSERVAR}"
+            if [ "$TOTAL" -gt "$CONSERVAR" ]; then
+              head -n "$((TOTAL - CONSERVAR))" /tmp/lista.txt | while read -r F; do
+                echo "  borrando ${F}"
+                aws s3 rm "s3://${BUCKET}/${PREFIJO}/${F}" --endpoint-url "$ENDPOINT"
+              done
+            fi
           }
           borrar semanal 52
           borrar mensual 12
