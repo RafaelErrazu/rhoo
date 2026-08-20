@@ -65,30 +65,41 @@ jobs:
 
       - name: Verificar que el respaldo sirve
         run: |
-          set -euo pipefail
+          set -eu
           TAM=$(stat -c%s "$ARCHIVO")
           echo "Tamaño: ${TAM} bytes"
 
-          # Un archivo de 0 bytes subido puntualmente cada semana
-          # es peor que no tener respaldo: da falsa tranquilidad.
           if [ "$TAM" -lt 10240 ]; then
             echo "::error::El respaldo pesa menos de 10 KB. Algo falló."
             exit 1
           fi
 
-          # Y que contenga de verdad las tablas que importan
+          # Se descomprime UNA vez a un archivo temporal en lugar
+          # de hacer zcat|grep por tabla: con pipefail, el grep -q
+          # cierra la tuberia al primer match y zcat muere con
+          # "broken pipe", que se lee como fallo del respaldo.
+          zcat "$ARCHIVO" > /tmp/dump.sql
+          echo "Descomprimido: $(stat -c%s /tmp/dump.sql) bytes"
+
+          FALTA=0
           for TABLA in empleados perfiles tenants nom035_respuestas checadas; do
-            if ! zcat "$ARCHIVO" | grep -q "CREATE TABLE public.${TABLA}"; then
+            if grep -q "CREATE TABLE public.${TABLA}" /tmp/dump.sql; then
+              echo "  ok  public.${TABLA}"
+            else
               echo "::error::Falta la tabla ${TABLA} en el respaldo."
-              exit 1
+              FALTA=1
             fi
           done
 
-          if ! zcat "$ARCHIVO" | grep -q "CREATE TABLE auth.users"; then
-            echo "::error::Falta auth.users. Sin eso nadie podría entrar tras restaurar."
-            exit 1
+          if grep -q "CREATE TABLE auth.users" /tmp/dump.sql; then
+            echo "  ok  auth.users"
+          else
+            echo "::error::Falta auth.users. Sin eso nadie podria entrar tras restaurar."
+            FALTA=1
           fi
 
+          rm -f /tmp/dump.sql
+          [ "$FALTA" -eq 0 ] || exit 1
           echo "Respaldo verificado."
 
       - name: Subir a R2
