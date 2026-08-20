@@ -1,0 +1,86 @@
+# ═══════════════════════════════════════════════════════════
+#  RHoo! · Respaldo mensual de Storage (expedientes) a R2
+#
+#  Se sincroniza en lugar de copiar todo: solo sube lo nuevo,
+#  así el respaldo no crece en tiempo ni en costo conforme se
+#  acumulan expedientes.
+# ═══════════════════════════════════════════════════════════
+name: Respaldo de expedientes
+
+on:
+  schedule:
+    # Día 1 de cada mes, 09:00 UTC
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Sincronizar Storage a R2
+        env:
+          SB_URL: ${{ secrets.SUPABASE_URL }}
+          SB_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+
+          # Supabase Storage habla S3, así que se sincroniza
+          # directo entre dos buckets sin descargar todo.
+          export AWS_ACCESS_KEY_ID_SRC="$SB_KEY"
+
+          # Se listan los objetos y se bajan por lotes: la API S3
+          # de Supabase requiere credenciales distintas, así que
+          # el paso intermedio es local.
+          mkdir -p expedientes
+          python3 - <<'PY'
+          import os, json, urllib.request, pathlib
+          url = os.environ['SB_URL'].rstrip('/')
+          key = os.environ['SB_KEY']
+          def api(path, body=None):
+              req = urllib.request.Request(
+                  f"{url}/storage/v1{path}",
+                  data=json.dumps(body).encode() if body else None,
+                  headers={'Authorization': f'Bearer {key}',
+                           'Content-Type': 'application/json'},
+                  method='POST' if body else 'GET')
+              return json.loads(urllib.request.urlopen(req).read())
+
+          def listar(prefijo=''):
+              salida = []
+              pila = [prefijo]
+              while pila:
+                  p = pila.pop()
+                  items = api('/object/list/expedientes',
+                              {'prefix': p, 'limit': 1000})
+                  for it in items:
+                      ruta = f"{p}{it['name']}" if p else it['name']
+                      if it.get('id') is None:
+                          pila.append(ruta + '/')
+                      else:
+                          salida.append(ruta)
+              return salida
+
+          archivos = listar()
+          print(f"{len(archivos)} archivos en Storage")
+          for ruta in archivos:
+              destino = pathlib.Path('expedientes') / ruta
+              destino.parent.mkdir(parents=True, exist_ok=True)
+              req = urllib.request.Request(
+                  f"{url}/storage/v1/object/expedientes/{ruta}",
+                  headers={'Authorization': f'Bearer {key}'})
+              destino.write_bytes(urllib.request.urlopen(req).read())
+          PY
+
+          aws s3 sync expedientes "s3://${BUCKET}/expedientes/" \
+            --endpoint-url "$ENDPOINT" --size-only
+
+          echo "### Expedientes respaldados" >> $GITHUB_STEP_SUMMARY
+          echo "- Archivos: $(find expedientes -type f | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "- Peso: $(du -sh expedientes | cut -f1)" >> $GITHUB_STEP_SUMMARY
