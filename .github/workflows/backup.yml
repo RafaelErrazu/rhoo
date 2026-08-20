@@ -47,7 +47,10 @@ jobs:
           # perfiles apuntando a usuarios inexistentes: nadie
           # puede entrar y el respaldo resulta inútil justo
           # cuando se necesita.
-          pg_dump "$DB_URL" \
+          # Ruta completa: apt instala el 17 pero el PATH sigue
+          # apuntando al pg_dump 16 preinstalado en el runner, y
+          # pg_dump se niega a volcar un servidor mas nuevo que el.
+          /usr/lib/postgresql/17/bin/pg_dump "$DB_URL" \
             --schema=public \
             --schema=app \
             --schema=auth \
