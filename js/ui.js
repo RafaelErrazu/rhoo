@@ -145,3 +145,112 @@ function cerrarPanel(){
   el.classList.remove('on');
   setTimeout(() => el.remove(), 220);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Notificaciones · campana y panel
+   ═══════════════════════════════════════════════════════════ */
+
+const NIVEL_NOTIF = {
+  urgente: { c:'#B91C1C',        bg:'#FEF2F2',      i:'fa-circle-exclamation' },
+  aviso:   { c:'#B45309',        bg:'#FEF3E2',      i:'fa-triangle-exclamation' },
+  info:    { c:'var(--brand-p)', bg:'var(--brand-s)', i:'fa-circle-info' },
+  celebra: { c:'#DB2777',        bg:'#FDF2F8',      i:'fa-cake-candles' }
+};
+
+let _notifs = [];
+let _notifTimer = null;
+
+async function cargarNotifs(){
+  const { data, error } = await sb.rpc('mis_notificaciones', { p_limite: 50 });
+  if(error) return;
+  _notifs = data.filas || [];
+  pintarBadge(data.no_leidas || 0);
+}
+
+function pintarBadge(n){
+  const b = document.getElementById('notif-badge');
+  if(!b) return;
+  if(n > 0){
+    b.textContent = n > 9 ? '9+' : n;
+    b.classList.add('on');
+  } else {
+    b.classList.remove('on');
+  }
+}
+
+function abrirNotifs(){
+  const relativo = iso => {
+    const d = (Date.now() - new Date(iso)) / 1000;
+    if(d < 3600)   return 'hace ' + Math.max(1, Math.floor(d/60)) + ' min';
+    if(d < 86400)  return 'hace ' + Math.floor(d/3600) + ' h';
+    if(d < 172800) return 'ayer';
+    return new Date(iso).toLocaleDateString('es-MX', {day:'2-digit', month:'short'});
+  };
+
+  const sinLeer = _notifs.filter(n => !n.leida).length;
+
+  panel({
+    titulo:'Notificaciones',
+    subtitulo: sinLeer ? sinLeer + ' sin leer' : 'Todo al día',
+    html: _notifs.length
+      ? '<div class="nt-lista">'
+        + _notifs.map(n => {
+            const v = NIVEL_NOTIF[n.nivel] || NIVEL_NOTIF.info;
+            return '<div class="nt'+(n.leida?' leida':'')+'" '
+              + (n.modulo ? 'onclick="irDesdeNotif(\''+n.modulo+'\',\''+n.id+'\')"' : '')
+              + '>'
+              + '<i class="nt-i fas '+v.i+'" style="color:'+v.c+';background:'+v.bg+'"></i>'
+              + '<div class="nt-txt">'
+              + '<b>'+n.titulo+'</b>'
+              + (n.cuerpo ? '<p>'+n.cuerpo+'</p>' : '')
+              + '<span>'+relativo(n.creado)
+              + (n.dias != null && n.dias < 0
+                  ? ' · <em style="color:#B91C1C">vencido</em>'
+                  : n.dias === 0 && n.nivel !== 'celebra'
+                    ? ' · <em style="color:#B45309">hoy</em>' : '')
+              + '</span></div>'
+              + (n.leida ? '' : '<span class="nt-punto"></span>')
+              + '</div>';
+          }).join('')
+        + '</div>'
+      : '<div class="vacio" style="margin:30px auto"><i class="fas fa-bell-slash"></i>'
+        + '<h3>Sin notificaciones</h3>'
+        + '<p>Aquí aparecen las solicitudes por autorizar, los documentos por '
+        + 'vencer, los cumpleaños y los avisos de cumplimiento.</p></div>',
+    acciones: sinLeer
+      ? '<button class="btn-sec-claro" onclick="marcarTodasLeidas()">'
+        + 'Marcar todas como leídas</button>'
+      : ''
+  });
+}
+
+async function marcarTodasLeidas(){
+  await sb.rpc('notif_marcar_leidas', { p_ids: null });
+  await cargarNotifs();
+  cerrarPanel();
+  toast('ok','Notificaciones marcadas como leídas');
+}
+
+async function irDesdeNotif(modulo, id){
+  // Solo esa: marcar todas al abrir una haria perder de vista el
+  // resto de los pendientes.
+  await sb.rpc('notif_marcar_leidas', { p_ids: [id] });
+  cerrarPanel();
+  await cargarNotifs();
+  if(typeof irA === 'function') irA(modulo);
+}
+
+/* Sondeo cada 3 minutos. Sin tiempo real a proposito: una
+   suscripcion abierta por usuario cuesta conexiones y esto no es
+   un chat. */
+function arrancarNotifs(){
+  cargarNotifs();
+  if(_notifTimer) clearInterval(_notifTimer);
+  _notifTimer = setInterval(cargarNotifs, 3 * 60 * 1000);
+
+  // Al volver a la pestaña: si estuvo abierta toda la noche, el
+  // badge mostraria el estado de ayer.
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) cargarNotifs();
+  });
+}

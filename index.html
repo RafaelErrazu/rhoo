@@ -1305,6 +1305,49 @@ td.cal-fest{background:#FEF3E2}
   font-family:ui-monospace, monospace; font-size:1.1rem;
   color:var(--brand-p); letter-spacing:.06em;
 }
+/* ── Notificaciones ── */
+.campana{
+  position:relative; background:none; border:none; cursor:pointer;
+  color:var(--txt-2); font-size:1rem; padding:8px 10px;
+  border-radius:var(--r-sm); transition:background-color .16s, color .16s;
+}
+.campana:hover{background:var(--linea-s); color:var(--brand-p)}
+#notif-badge{
+  display:none; position:absolute; top:3px; right:4px;
+  min-width:17px; height:17px; padding:0 4px;
+  background:var(--acento); color:#fff;
+  border-radius:99px; font-size:.62rem; font-weight:800;
+  line-height:17px; text-align:center;
+  border:2px solid var(--panel);
+}
+#notif-badge.on{display:block}
+
+.nt-lista{display:flex; flex-direction:column; gap:6px}
+.nt{
+  display:flex; align-items:flex-start; gap:12px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:13px 15px; cursor:pointer;
+  position:relative; transition:border-color .16s;
+}
+.nt:hover{border-color:var(--brand)}
+/* Lo leido se atenua pero no desaparece: buscar algo que ya se
+   leyo es un caso real. */
+.nt.leida{opacity:.6; background:var(--linea-s)}
+.nt-i{
+  width:34px; height:34px; border-radius:9px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:.9rem;
+}
+.nt-txt{flex:1; min-width:0}
+.nt-txt b{display:block; font-size:.86rem; line-height:1.35; margin-bottom:3px}
+.nt-txt p{font-size:.78rem; color:var(--txt-2); line-height:1.5; margin-bottom:5px}
+.nt-txt span{font-size:.71rem; color:var(--txt-3)}
+.nt-txt em{font-style:normal; font-weight:700}
+.nt-punto{
+  position:absolute; top:14px; right:14px;
+  width:8px; height:8px; border-radius:50%; background:var(--acento);
+}
+
+@media(max-width:900px){ .campana{padding:8px} }
 </style>
 </head>
 <body>
@@ -1387,6 +1430,10 @@ td.cal-fest{background:#FEF3E2}
         <i class="fas fa-bars"></i>
       </button>
       <h2 id="titulo">Inicio</h2>
+      <button class="campana" onclick="abrirNotifs()" aria-label="Notificaciones">
+        <i class="fas fa-bell"></i>
+        <span id="notif-badge"></span>
+      </button>
       <span class="barra-tenant" id="b-tenant"></span>
     </header>
     <main id="contenido"></main>
@@ -1627,6 +1674,8 @@ async function cargarSesion(user){
   $('carga').classList.add('off');
 
   pintarNav();
+
+  if(typeof arrancarNotifs === 'function') arrancarNotifs();
 
   // Contraseña temporal: se pide cambiarla ANTES de dejar usar la
   // app. Si solo se sugiriera, la contraseña que se compartió por
