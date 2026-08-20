@@ -1267,6 +1267,44 @@ td.cal-fest{background:#FEF3E2}
   padding:2px 9px; border-radius:99px; font-size:.7rem !important; font-weight:700}
 .pv-lleno{font-size:.74rem; color:#B91C1C; margin-top:8px}
 .cu-kpi.alerta b{color:#B45309}
+/* ── Usuarios ── */
+.us-lista{display:flex; flex-direction:column; gap:8px}
+.us-item{
+  display:flex; align-items:center; gap:13px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:12px 15px;
+}
+.us-item.off{opacity:.55; background:var(--linea-s)}
+.us-info{flex:1; min-width:0}
+.us-info b{display:block; font-size:.88rem}
+.us-info b em{font-style:normal; color:var(--txt-3); font-weight:600; font-size:.78rem}
+.us-info span{display:block; font-size:.74rem; color:var(--txt-3)}
+.us-emp{color:var(--brand-p) !important}
+.us-meta{display:flex; flex-direction:column; align-items:flex-end; gap:3px;
+  flex-shrink:0}
+.us-rol{font-size:.72rem; font-weight:800; color:var(--brand-p);
+  background:var(--brand-s); padding:3px 10px; border-radius:99px}
+.us-est{font-size:.7rem; font-weight:700; color:var(--error)}
+.us-nunca{font-size:.7rem; color:#B45309; font-weight:600}
+.us-acc{font-size:.7rem; color:var(--txt-3)}
+.us-temp{font-size:.7rem; color:#B45309}
+.us-acc-btn{display:flex; gap:3px; flex-shrink:0}
+.us-acc-btn button{
+  background:none; border:none; cursor:pointer; color:var(--txt-3);
+  padding:7px 8px; border-radius:var(--r-sm); font-size:.8rem;
+}
+.us-acc-btn button:hover{background:var(--linea-s); color:var(--brand-p)}
+
+.cred{display:flex; flex-direction:column; gap:1px;
+  background:var(--linea-s); border-radius:var(--r-md); overflow:hidden}
+.cred-f{background:var(--panel); padding:11px 14px}
+.cred-f span{display:block; font-size:.7rem; color:var(--txt-3); font-weight:700;
+  text-transform:uppercase; letter-spacing:.05em}
+.cred-f b{font-size:.88rem; word-break:break-all}
+.cred-pass b{
+  font-family:ui-monospace, monospace; font-size:1.1rem;
+  color:var(--brand-p); letter-spacing:.06em;
+}
 </style>
 </head>
 <body>
@@ -1368,6 +1406,7 @@ td.cal-fest{background:#FEF3E2}
 <script src="js/modulos/organigrama.js"></script>
 <script src="js/modulos/cumplimiento.js"></script>
 <script src="js/modulos/proveedor.js"></script>
+<script src="js/modulos/usuarios.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
@@ -1467,7 +1506,8 @@ const RUTAS = {
   vacaciones:   () => moduloVacaciones(),
   organigrama:   () => moduloOrganigrama(),
   cumplimiento:  () => moduloCumplimiento(),
-  proveedor:     () => moduloProveedor()
+  proveedor:     () => moduloProveedor(),
+  usuarios:      () => moduloUsuarios()
 };
 
 function pintarModulo(id){
@@ -1541,7 +1581,7 @@ async function cargarSesion(user){
 
   const { data: perfil, error } = await sb
     .from('perfiles')
-    .select('id, tenant_id, rol, nombre, email, empleado_id')
+    .select('id, tenant_id, rol, nombre, email, empleado_id, debe_cambiar_password')
     .eq('id', user.id)
     .single();
 
@@ -1576,6 +1616,14 @@ async function cargarSesion(user){
   $('carga').classList.add('off');
 
   pintarNav();
+
+  // Contraseña temporal: se pide cambiarla ANTES de dejar usar la
+  // app. Si solo se sugiriera, la contraseña que se compartió por
+  // WhatsApp seguiría siendo válida meses después.
+  if(perfil.debe_cambiar_password && typeof pedirCambioPassword === 'function'){
+    await pedirCambioPassword();
+  }
+
   // Si vino de un atajo del manifest, se abre ese módulo, pero
   // solo si su rol lo permite: el atajo no debe brincar permisos.
   const mod = MODULOS.flatMap(g => g.items)
