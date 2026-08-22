@@ -768,14 +768,14 @@ function nmCSV(){
   ];
 
   const filas = nmFilasVisibles();
-  const limpia = v => v == null ? ''
-    : String(v).replace(/;/g,',').replace(/[\r\n]+/g,' ');
+  // Comillas siempre y coma como separador: es CSV estandar, y el BOM al
+  // inicio (sin nada antes) es lo unico que hace que Excel lea los acentos.
+  const limpia = v => '"' + (v == null ? ''
+    : String(v).replace(/"/g,'""').replace(/[\r\n]+/g,' ')) + '"';
 
-  // Excel en espanol usa coma como separador de lista y mete todo en una
-  // sola columna. La directiva sep= se lo dice sin depender de la region.
-  const csv = 'sep=;\r\n﻿'
-    + cols.map(c => c[0]).join(';') + '\r\n'
-    + filas.map(f => cols.map(c => limpia(f[c[1]])).join(';')).join('\r\n');
+  const csv = '﻿'
+    + cols.map(c => limpia(c[0])).join(',') + '\r\n'
+    + filas.map(f => cols.map(c => limpia(f[c[1]])).join(',')).join('\r\n');
 
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
