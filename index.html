@@ -1371,7 +1371,7 @@ td.cal-fest{background:#FEF3E2}
   color:var(--brand-p); font-weight:700}
 
 .cal-rejilla{
-  display:grid; grid-template-columns:repeat(7, 1fr); gap:1px;
+  display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:1px;
   background:var(--linea); border:1px solid var(--linea);
   border-radius:var(--r-lg); overflow:hidden;
 }
@@ -1484,6 +1484,28 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
   .cal-ev{font-size:.6rem}
   .cal-num{font-size:.7rem}
   .eq-nom{min-width:120px; font-size:.72rem}
+}
+/* En un celular, 7 columnas de 45 px no son un calendario: son
+   confeti. Debajo de 640 px la rejilla se vuelve una agenda
+   vertical con solo los días que tienen algo. */
+@media(max-width:640px){
+  .cal-rejilla{display:block; border:none; background:none}
+  .cal-dow{display:none}
+  .cal-celda{
+    display:none; min-height:0; margin-bottom:6px;
+    border:1px solid var(--linea); border-radius:var(--r-md);
+    padding:10px 12px; flex-direction:row; align-items:flex-start; gap:12px;
+  }
+  /* Solo los días con eventos: un mes de celdas vacías no informa */
+  .cal-celda:has(.cal-ev){display:flex}
+  .cal-celda.fuera{display:none !important}
+  .cal-num{
+    font-size:1rem; font-weight:800; min-width:26px;
+    color:var(--brand-p);
+  }
+  .cal-evs{flex:1}
+  .cal-ev{font-size:.78rem; white-space:normal; padding:4px 8px}
+  .cal-celda.hoy{box-shadow:none; border-color:var(--brand); border-width:2px}
 }
 </style>
 </head>
