@@ -773,7 +773,7 @@ function nmCSV(){
 
   // Excel en espanol usa coma como separador de lista y mete todo en una
   // sola columna. La directiva sep= se lo dice sin depender de la region.
-  const csv = '﻿' + 'sep=;\r\n'
+  const csv = 'sep=;\r\n﻿'
     + cols.map(c => c[0]).join(';') + '\r\n'
     + filas.map(f => cols.map(c => limpia(f[c[1]])).join(';')).join('\r\n');
 
