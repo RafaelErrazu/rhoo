@@ -1507,6 +1507,213 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
   .cal-ev{font-size:.78rem; white-space:normal; padding:4px 8px}
   .cal-celda.hoy{box-shadow:none; border-color:var(--brand); border-width:2px}
 }
+/* ── Prenómina ── */
+.nm-top{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; flex-wrap:wrap; margin-bottom:16px;
+}
+.nm-top-izq{display:flex; align-items:center; gap:12px}
+.nm-top-der{display:flex; gap:8px; flex-wrap:wrap}
+#nm-anio{
+  font-family:inherit; font-size:.9rem; font-weight:800;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  padding:8px 12px; background:var(--panel); color:var(--txt);
+}
+#nm-anio:focus{outline:none; border-color:var(--brand)}
+.nm-top-dato{font-size:.79rem; color:var(--txt-3)}
+.btn-sec-claro{
+  font-family:inherit; font-size:.82rem; font-weight:700;
+  border-radius:var(--r-sm); padding:9px 14px; cursor:pointer;
+  background:var(--panel); color:var(--txt-2);
+  border:1.5px solid var(--linea);
+  display:inline-flex; align-items:center; gap:7px;
+  transition:border-color .16s, color .16s;
+}
+.btn-sec-claro:hover{border-color:var(--brand); color:var(--brand-p)}
+.btn-peligro{
+  font-family:inherit; font-size:.82rem; font-weight:700; border:none;
+  border-radius:var(--r-sm); padding:9px 15px; cursor:pointer;
+  background:var(--error); color:#fff;
+}
+.btn-peligro:hover{background:#B91C1C}
+
+/* Tira de grupos: informacion de contexto, no el contenido */
+.nm-grupos-tira{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px}
+.nm-gr{
+  font-size:.76rem; color:var(--txt-2);
+  background:var(--linea-s); border-radius:99px; padding:6px 13px;
+}
+.nm-gr b{color:var(--txt); font-weight:800; margin-right:2px}
+.nm-gr em{color:var(--txt-3); font-style:normal}
+.nm-gr.off{opacity:.5; text-decoration:line-through}
+
+/* Las tablas de nomina tienen muchas columnas: scroll horizontal
+   propio en lugar de encoger la letra hasta lo ilegible. */
+.nm-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch}
+.nm-scroll .tb-tabla{min-width:820px}
+.tb-tabla th.der, .tb-tabla td.der{text-align:right}
+.tb-tabla tfoot td{
+  padding:12px 16px; font-size:.83rem; font-weight:700;
+  border-top:1px solid var(--linea); color:var(--txt-2);
+}
+.nm-clic{cursor:pointer}
+.nm-mal{color:var(--error); font-weight:700}
+.nm-av{color:var(--alerta); font-size:.72rem; margin-left:3px}
+.nm-flag{
+  display:inline-flex; align-items:center; gap:4px; margin-left:7px;
+  font-size:.7rem; font-weight:700; color:#B45309;
+  background:#FEF3E2; padding:2px 7px; border-radius:99px;
+}
+
+/* Detalle */
+.nm-det-top{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px;
+}
+.nm-volver{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:.82rem; font-weight:700; color:var(--txt-3);
+  display:inline-flex; align-items:center; gap:7px; padding:6px 0;
+  transition:color .16s;
+}
+.nm-volver:hover{color:var(--brand-p)}
+.nm-det-tit{flex:1; min-width:200px}
+.nm-det-tit h3{font-size:1.05rem; font-weight:800}
+.nm-det-tit p{font-size:.79rem; color:var(--txt-3); margin-top:2px}
+.nm-acciones{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+
+.nm-cerrado, .nm-hueco{
+  display:flex; gap:12px; align-items:flex-start;
+  border-radius:var(--r-md); padding:14px 16px; margin-bottom:16px;
+}
+.nm-cerrado{background:var(--linea-s)}
+.nm-cerrado i{color:var(--txt-3); margin-top:3px}
+.nm-cerrado b, .nm-hueco b{font-size:.87rem}
+.nm-cerrado p, .nm-hueco p{font-size:.79rem; color:var(--txt-2);
+  line-height:1.55; margin-top:3px}
+.nm-hueco{background:#FEF3E2}
+.nm-hueco i{color:#B45309; margin-top:3px}
+.nm-hueco em{color:var(--txt-3); font-style:normal}
+.nm-hueco-tip{color:var(--txt-3) !important; font-size:.75rem !important}
+
+.nm-kpi-neto{border-color:var(--brand-b); background:var(--brand-s)}
+.nm-kpi-neto b{color:var(--brand-p)}
+
+.nm-filtros{display:flex; align-items:center; gap:10px;
+  flex-wrap:wrap; margin-bottom:14px}
+#nm-q{
+  flex:1; min-width:200px; max-width:320px;
+  font-family:inherit; font-size:.85rem;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  padding:9px 13px; color:var(--txt); background:var(--panel);
+}
+#nm-q:focus{outline:none; border-color:var(--brand)}
+.nm-chip{
+  font-family:inherit; font-size:.78rem; font-weight:700; cursor:pointer;
+  border:1.5px solid var(--linea); border-radius:99px; padding:7px 14px;
+  background:var(--panel); color:var(--txt-2);
+  display:inline-flex; align-items:center; gap:6px; transition:all .16s;
+}
+.nm-chip:hover{border-color:#F5C97E}
+.nm-chip.on{background:#FEF3E2; border-color:#F5C97E; color:#B45309}
+.nm-filtro-dato{font-size:.76rem; color:var(--txt-3); margin-left:auto}
+.nm-nada{
+  font-size:.85rem; color:var(--txt-3); text-align:center;
+  padding:34px; background:var(--panel);
+  border:1px dashed var(--linea); border-radius:var(--r-lg);
+}
+.nm-nada-min{font-size:.8rem; color:var(--txt-3); padding:6px 0}
+.nm-legal{
+  font-size:.76rem; color:var(--txt-3); line-height:1.55; margin-top:14px;
+  background:var(--linea-s); border-radius:var(--r-sm); padding:10px 13px;
+}
+
+/* Panel de desglose */
+.nm-h{
+  font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--txt-3); margin:22px 0 9px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.nm-h:first-child{margin-top:0}
+.nm-add{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:.72rem; font-weight:700; color:var(--brand-p);
+  display:inline-flex; align-items:center; gap:5px;
+  text-transform:none; letter-spacing:0;
+}
+.nm-avisos{display:flex; flex-direction:column; gap:7px; margin-bottom:4px}
+.nm-aviso{
+  display:flex; gap:9px; align-items:flex-start;
+  font-size:.79rem; color:#8A5A0B; line-height:1.5;
+  background:#FEF3E2; border-radius:var(--r-sm); padding:10px 13px;
+}
+.nm-aviso i{margin-top:2px; flex-shrink:0}
+.nm-dias{display:flex; flex-wrap:wrap; gap:7px}
+.nm-dia{
+  font-size:.73rem; color:var(--txt-2); background:var(--linea-s);
+  border-radius:var(--r-sm); padding:7px 11px;
+  display:inline-flex; align-items:baseline; gap:6px;
+}
+.nm-dia b{font-size:.95rem; font-weight:800; color:var(--txt)}
+.nm-lns{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:4px 14px;
+}
+.nm-ln{
+  display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  padding:10px 0; border-top:1px solid var(--linea-s); font-size:.83rem;
+}
+.nm-ln:first-child{border-top:none}
+.nm-ln em{color:var(--txt-3); font-style:normal; font-size:.74rem}
+.nm-ln.tot{border-top:1.5px solid var(--linea); font-weight:800}
+.nm-neto{
+  display:flex; align-items:baseline; justify-content:space-between;
+  background:var(--tinta); color:#fff; border-radius:var(--r-md);
+  padding:14px 16px; margin-top:14px;
+}
+.nm-neto span{font-size:.83rem; color:rgba(255,255,255,.6); font-weight:600}
+.nm-neto b{font-size:1.3rem; font-weight:900}
+.nm-movs{display:flex; flex-direction:column; gap:7px}
+.nm-mov{
+  display:flex; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-sm); padding:10px 13px;
+}
+.nm-mov > div{flex:1; min-width:0}
+.nm-mov b{display:block; font-size:.84rem}
+.nm-mov span{display:block; font-size:.73rem; color:var(--txt-3); margin-top:2px}
+.nm-x{
+  background:none; border:none; cursor:pointer; color:var(--txt-3);
+  padding:6px; border-radius:6px; font-size:.78rem; transition:color .16s;
+}
+.nm-x:hover{color:var(--error)}
+.nm-errs{display:flex; flex-direction:column; gap:7px}
+.nm-err{
+  background:#FEF2F2; border-radius:var(--r-sm); padding:10px 13px;
+  font-size:.81rem;
+}
+.nm-err b{display:block; color:#B91C1C}
+.nm-err span{color:var(--txt-2); font-size:.76rem}
+.nm-expl{font-size:.81rem; color:var(--txt-2); line-height:1.6; margin-bottom:14px}
+.nm-gr-lista{display:flex; flex-direction:column; gap:7px}
+.nm-gr-item{
+  width:100%; text-align:left; cursor:pointer; font-family:inherit;
+  background:var(--panel); border:1.5px solid var(--linea);
+  border-radius:var(--r-md); padding:12px 14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  transition:border-color .16s;
+}
+.nm-gr-item:hover{border-color:var(--brand)}
+.nm-gr-item b{display:block; font-size:.86rem; color:var(--txt)}
+.nm-gr-item span{display:block; font-size:.74rem; color:var(--txt-3); margin-top:2px}
+.nm-gr-item i{color:var(--txt-3); font-size:.78rem}
+.nm-gr-item.off{opacity:.55}
+
+@media(max-width:900px){
+  .nm-top-der{width:100%}
+  .nm-top-der button{flex:1; justify-content:center}
+  .nm-acciones button{flex:1; justify-content:center}
+  .nm-filtro-dato{margin-left:0; width:100%}
+}
 </style>
 </head>
 <body>
@@ -1615,6 +1822,7 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
 <script src="js/modulos/usuarios.js"></script>
 <script src="js/modulos/calendario.js"></script>
 <script src="js/modulos/asistencia.js"></script>
+<script src="js/modulos/prenomina.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
    RHoo! · Shell
@@ -1637,6 +1845,9 @@ const MODULOS = [
     { id:'organigrama',nombre:'Mi equipo',   icono:'fa-sitemap',        roles:'jefe' },
     { id:'turnos',     nombre:'Turnos',      icono:'fa-clock-rotate-left', roles:'admin' },
     { id:'cumplimiento', nombre:'Cumplimiento', icono:'fa-shield-halved', roles:'admin' }
+  ]},
+  { grupo:'Nómina', items:[
+    { id:'prenomina',  nombre:'Prenómina',   icono:'fa-file-invoice-dollar', roles:'admin' }
   ]},
   { grupo:'Proveedor', items:[
     { id:'proveedor', nombre:'Clientes', icono:'fa-building', roles:'proveedor' }
@@ -1717,6 +1928,7 @@ const RUTAS = {
   proveedor:     () => moduloProveedor(),
   usuarios:      () => moduloUsuarios(),
   calendario:    () => moduloCalendario(),
+  prenomina:     () => moduloPrenomina(),
   inicio:        () => moduloInicio()
 };
 
