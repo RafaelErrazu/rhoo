@@ -248,6 +248,10 @@ async function verEmpleado(id){
       + '<button class="btn-sec-claro" onclick="abrirDocumentos(\''+id+'\',\''
       + e.nombre_completo.replace(/'/g,"\\'")+'\')">'
       + '<i class="fas fa-folder-open"></i> Documentos</button>'
+      + (Sesion.esAdmin
+          ? '<button class="btn-sec-claro" onclick="verSueldo(\'' + id + '\')">'
+            + '<i class="fas fa-money-bill-wave"></i> Sueldo</button>'
+          : '')
       + (e.estatus === 'Activo'
           ? '<button class="btn-peligro" onclick="bajaEmpleado(\''+id+'\',\''
             + e.nombre_completo.replace(/'/g,"\\'")+'\')">Dar de baja</button>'
@@ -397,4 +401,228 @@ async function moduloEmpleados(){
 
   document.querySelector('.emp-sel').value = _empFiltro.estatus;
   await pintarEmpleados();
+}
+/* ═══════════════════════════════════════════════════════════
+   Sueldo y prestaciones
+   En panel aparte y solo para admin/RH: el salario no se pone
+   inline en el expediente porque cualquier jefe que revise a su
+   equipo lo veria, y eso no se puede deshacer.
+   ═══════════════════════════════════════════════════════════ */
+
+const SD_TIPO = { fijo:'Fijo', variable:'Variable', mixto:'Mixto' };
+
+function sdM(n){
+  return (Number(n)||0).toLocaleString('es-MX',
+    { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function sdFecha(f){
+  if(!f) return '—';
+  return new Date(f+'T12:00').toLocaleDateString('es-MX',
+    { day:'2-digit', month:'short', year:'numeric' });
+}
+
+async function verSueldo(empId){
+  const { data, error } = await sb.rpc('nomina_sueldo_historial',
+    { p_empleado_id: empId });
+  if(error){ toast('error', error.message); return; }
+
+  const e = data.empleado;
+  const h = data.historial || [];
+  const vig = h.find(x => x.vigente);
+  const sdi = data.sdi || {};
+
+  panel({
+    titulo:'Sueldo · '+e.nombre,
+    subtitulo:'#'+e.no_empleado+' · ingreso '+sdFecha(e.fecha_ingreso),
+    html:
+      (vig
+        ? '<div class="sd-hoy">'
+          + '<div class="sd-hoy-num">'
+          + '<b>'+sdM(vig.sueldo_diario)+'</b>'
+          + '<span>sueldo diario</span></div>'
+          + '<div class="sd-hoy-num">'
+          + '<b>'+sdM(sdi.sdi)+'</b>'
+          + '<span>SDI</span></div>'
+          + '<div class="sd-hoy-num">'
+          + '<b>'+sdM(Number(vig.sueldo_diario) * 30.4)+'</b>'
+          + '<span>mensual aprox.</span></div>'
+          + '</div>'
+
+          // El SDI armado paso a paso: es el numero que se reporta al IMSS y
+          // nadie lo recuerda de memoria. Verlo desglosado evita la llamada
+          // al contador cada vez que alguien lo cuestiona.
+          + '<h4 class="sd-h">Cómo se integra el SDI</h4>'
+          + '<div class="sd-calc">'
+          + '<div class="sd-ln"><span>Sueldo diario</span>'
+          + '<b>'+sdM(sdi.sueldo_diario)+'</b></div>'
+          + (Number(sdi.otras_prestaciones)
+            ? '<div class="sd-ln"><span>Otras prestaciones que integran</span>'
+              + '<b>'+sdM(sdi.otras_prestaciones)+'</b></div>' : '')
+          + '<div class="sd-ln"><span>Factor de integración'
+          + ' <em>'+sdi.dias_aguinaldo+' días de aguinaldo · '
+          + sdi.dias_vacaciones+' de vacaciones × '
+          + Math.round(Number(sdi.prima_vac_pct)*100)+'% de prima</em></span>'
+          + '<b>'+Number(sdi.factor).toFixed(4)+'</b></div>'
+          + '<div class="sd-ln tot"><span>SDI</span>'
+          + '<b>'+sdM(sdi.sdi)+'</b></div>'
+          + (sdi.excede_tope
+            ? '<div class="sd-tope"><i class="fas fa-triangle-exclamation"></i>'
+              + '<span>El SDI rebasa el tope de 25 UMAs ('
+              + sdM(sdi.tope)+'). Para IMSS se cotiza topado en '
+              + sdM(sdi.sdi_topado)+'.</span></div>'
+            : '')
+          + '</div>'
+
+          + '<h4 class="sd-h">Datos del registro vigente</h4>'
+          + '<div class="ex-grid">'
+          + '<div class="ex-dato"><span>Grupo de pago</span><b>'
+          + (vig.grupo ? vig.grupo+' · '+vig.grupo_nombre
+              : '<em class="sd-falta">Sin asignar</em>')+'</b></div>'
+          + '<div class="ex-dato"><span>Tipo</span><b>'
+          + (SD_TIPO[vig.tipo]||vig.tipo)+'</b></div>'
+          + '<div class="ex-dato"><span>Vigente desde</span><b>'
+          + sdFecha(vig.desde)+'</b></div>'
+          + '<div class="ex-dato"><span>Zona</span><b>'
+          + (vig.zona_frontera ? 'Frontera norte' : 'General')+'</b></div>'
+          + '<div class="ex-dato"><span>Banco</span><b>'
+          + (vig.banco || '—')+'</b></div>'
+          + '<div class="ex-dato"><span>CLABE</span><b>'
+          + (vig.clabe || '—')+'</b></div>'
+          + '</div>'
+
+        : '<div class="sd-sin">'
+          + '<i class="fas fa-circle-exclamation"></i>'
+          + '<div><b>Sin sueldo registrado</b>'
+          + '<p>Sin esto no entra a ningún periodo de nómina: al calcular '
+          + 'aparece en la lista de pendientes y nadie le paga.</p></div>'
+          + '</div>')
+
+      + (h.length
+        ? '<h4 class="sd-h">Historial</h4>'
+          + '<div class="sd-hist">'
+          + h.map(s => '<div class="sd-item'+(s.vigente?' on':'')+'">'
+              + '<div class="sd-item-top">'
+              + '<b>'+sdM(s.sueldo_diario)+'</b>'
+              + '<span class="sd-rango">'+sdFecha(s.desde)+' → '
+              + (s.hasta ? sdFecha(s.hasta) : 'actual')+'</span>'
+              + (s.vigente ? '<span class="sd-tag">Vigente</span>' : '')
+              + '</div>'
+              + '<span class="sd-item-sub">'
+              + (s.grupo ? s.grupo+' · ' : '')
+              + (SD_TIPO[s.tipo]||s.tipo)
+              + ' · aguinaldo '+s.dias_aguinaldo+' d'
+              + ' · prima '+Math.round(Number(s.prima_vac_pct)*100)+'%'
+              + (Number(s.otras_prestaciones)
+                  ? ' · prestaciones '+sdM(s.otras_prestaciones) : '')
+              + '</span>'
+              + (s.motivo ? '<span class="sd-motivo">'+s.motivo+'</span>' : '')
+              + (s.capturo
+                  ? '<span class="sd-item-sub">Capturó '+s.capturo+'</span>' : '')
+              + '</div>').join('')
+          + '</div>'
+        : '')
+
+      + '<p class="sd-nota">Un cambio de sueldo no reescribe el registro '
+      + 'anterior: cierra su vigencia y crea uno nuevo. Así la nómina de un '
+      + 'periodo pasado se puede recalcular con el sueldo que la persona '
+      + 'tenía entonces.</p>',
+
+    acciones:'<button class="btn-pri" onclick="nuevoSueldo(\''+empId+'\')">'
+      + '<i class="fas '+(vig?'fa-arrow-trend-up':'fa-plus')+'"></i> '
+      + (vig ? 'Registrar cambio' : 'Registrar sueldo')+'</button>'
+  });
+}
+
+async function nuevoSueldo(empId){
+  const { data, error } = await sb.rpc('nomina_sueldo_historial',
+    { p_empleado_id: empId });
+  if(error){ toast('error', error.message); return; }
+
+  const h = data.historial || [];
+  const vig = h.find(x => x.vigente);
+  const gs = data.grupos || [];
+  const min = data.minimos || {};
+
+  if(!gs.length){
+    toast('error','Primero crea un grupo de pago en Prenómina');
+    return;
+  }
+
+  // El dia siguiente al ultimo cambio: registrar un sueldo con vigencia
+  // anterior al actual dejaria dos sueldos vigentes el mismo dia.
+  let sug = new Date().toLocaleDateString('sv-SE');
+  if(vig){
+    const d = new Date(vig.desde+'T12:00');
+    d.setDate(d.getDate() + 1);
+    const hoy = new Date();
+    sug = (d > hoy ? d : hoy).toLocaleDateString('sv-SE');
+  }
+
+  const r = await modal({
+    titulo: vig ? 'Cambio de sueldo' : 'Registrar sueldo',
+    subtitulo: vig
+      ? 'El sueldo actual de '+sdM(vig.sueldo_diario)+' se cierra el día '
+        + 'anterior a la nueva vigencia.'
+      : 'Mínimo vigente: '+sdM(min.general)+' general, '
+        + sdM(min.frontera)+' en frontera norte.',
+    ok: vig ? 'Aplicar cambio' : 'Guardar',
+    campos:[
+      { k:'sueldo', label:'Sueldo diario', t:'num', req:true, ancho:'mitad',
+        valor: vig ? vig.sueldo_diario : '',
+        nota:'No puede ser menor al salario mínimo.' },
+      { k:'desde', label:'Vigente desde', t:'fecha', req:true, ancho:'mitad',
+        valor: sug },
+      { k:'grupo', label:'Grupo de pago', t:'select', req:true, ancho:'mitad',
+        valor: vig ? vig.grupo_id : (gs.length === 1 ? gs[0].id : ''),
+        opciones: gs.map(g => [g.id, g.clave+' · '+g.nombre+' ('+g.frecuencia+')']),
+        nota:'Define cada cuándo se le paga.' },
+      { k:'tipo', label:'Tipo de salario', t:'select', req:true, ancho:'mitad',
+        valor: vig ? vig.tipo : 'fijo',
+        opciones:[['fijo','Fijo'],['variable','Variable'],['mixto','Mixto']] },
+      { k:'aguinaldo', label:'Días de aguinaldo', t:'num', req:true, ancho:'mitad',
+        valor: vig ? vig.dias_aguinaldo : 15,
+        nota:'Mínimo de ley: 15 días.' },
+      { k:'prima', label:'Prima vacacional %', t:'num', req:true, ancho:'mitad',
+        valor: vig ? Math.round(Number(vig.prima_vac_pct)*100) : 25,
+        nota:'Mínimo de ley: 25%.' },
+      { k:'prestaciones', label:'Otras prestaciones (diario)', t:'num',
+        ancho:'mitad', valor: vig ? vig.otras_prestaciones : 0,
+        nota:'Vales o bonos fijos que integran al SDI.' },
+      { k:'frontera', label:'Zona frontera norte', t:'select', req:true,
+        ancho:'mitad', valor: vig && vig.zona_frontera ? 'si' : 'no',
+        opciones:[['no','No'],['si','Sí']] },
+      { k:'banco', label:'Banco', t:'texto', ancho:'mitad',
+        valor: vig ? (vig.banco||'') : '' },
+      { k:'clabe', label:'CLABE', t:'texto', ancho:'mitad', max:18,
+        valor: vig ? (vig.clabe||'') : '' },
+      { k:'motivo', label:'Motivo', t:'texto',
+        valor: vig ? '' : 'Alta',
+        nota:'Queda en el historial. Ej. aumento anual, promoción, ajuste.' }
+    ]
+  });
+  if(!r) return;
+
+  const { data: res, error: err2 } = await sb.rpc('nomina_sueldo_guardar', {
+    p_empleado_id: empId,
+    p_sueldo_diario: Number(r.sueldo),
+    p_grupo_id: r.grupo,
+    p_desde: r.desde,
+    p_tipo: r.tipo,
+    p_dias_aguinaldo: Number(r.aguinaldo) || 15,
+    // La prima se captura en % porque es como la piensa la gente, y se manda
+    // como fraccion porque asi la guarda la base.
+    p_prima_vac_pct: (Number(r.prima) || 25) / 100,
+    p_otras_prestaciones: Number(r.prestaciones) || 0,
+    p_zona_frontera: r.frontera === 'si',
+    p_banco: r.banco || null,
+    p_clabe: r.clabe || null,
+    p_motivo: r.motivo || null
+  });
+  if(err2){ toast('error', err2.message); return; }
+
+  const nsdi = res.sdi || {};
+  toast('ok','Sueldo guardado. SDI '+sdM(nsdi.sdi));
+  cerrarPanel();
+  verSueldo(empId);
 }

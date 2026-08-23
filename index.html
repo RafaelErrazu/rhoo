@@ -1714,6 +1714,81 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
   .nm-acciones button{flex:1; justify-content:center}
   .nm-filtro-dato{margin-left:0; width:100%}
 }
+/* ── Sueldos ── */
+.sd-hoy{
+  display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px;
+}
+.sd-hoy-num{
+  flex:1; min-width:110px;
+  background:var(--brand-s); border-radius:var(--r-md); padding:13px 15px;
+}
+.sd-hoy-num b{
+  display:block; font-size:1.32rem; font-weight:900; line-height:1.1;
+  color:var(--brand-p); font-variant-numeric:tabular-nums;
+}
+.sd-hoy-num span{font-size:.72rem; color:var(--txt-3); font-weight:600}
+.sd-h{
+  font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--txt-3); margin:22px 0 9px;
+}
+.sd-calc{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:4px 14px;
+}
+.sd-ln{
+  display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  padding:10px 0; border-top:1px solid var(--linea-s); font-size:.83rem;
+}
+.sd-ln:first-child{border-top:none}
+.sd-ln b{font-variant-numeric:tabular-nums}
+.sd-ln em{
+  display:block; color:var(--txt-3); font-style:normal;
+  font-size:.73rem; margin-top:2px; line-height:1.45;
+}
+.sd-ln.tot{border-top:1.5px solid var(--linea); font-weight:800}
+.sd-tope{
+  display:flex; gap:9px; align-items:flex-start;
+  font-size:.78rem; color:#8A5A0B; line-height:1.5;
+  background:#FEF3E2; border-radius:var(--r-sm);
+  padding:10px 13px; margin:4px 0 12px;
+}
+.sd-tope i{margin-top:2px; flex-shrink:0}
+.sd-sin{
+  display:flex; gap:12px; align-items:flex-start;
+  background:#FEF3E2; border-radius:var(--r-md); padding:14px 16px;
+}
+.sd-sin i{color:#B45309; margin-top:3px}
+.sd-sin b{font-size:.87rem}
+.sd-sin p{font-size:.79rem; color:var(--txt-2); line-height:1.55; margin-top:3px}
+.sd-falta{color:var(--error); font-style:normal; font-weight:700}
+.sd-hist{display:flex; flex-direction:column; gap:7px}
+.sd-item{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:11px 14px;
+}
+.sd-item.on{border-color:var(--brand-b); background:var(--brand-s)}
+.sd-item-top{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.sd-item-top b{
+  font-size:1rem; font-weight:800; font-variant-numeric:tabular-nums;
+}
+.sd-rango{font-size:.75rem; color:var(--txt-3); flex:1}
+.sd-tag{
+  font-size:.68rem; font-weight:800; color:var(--brand-p);
+  background:var(--panel); border:1px solid var(--brand-b);
+  padding:2px 8px; border-radius:99px;
+}
+.sd-item-sub{
+  display:block; font-size:.74rem; color:var(--txt-3);
+  margin-top:3px; line-height:1.45;
+}
+.sd-motivo{
+  display:block; font-size:.77rem; color:var(--txt-2);
+  margin-top:5px; font-style:italic;
+}
+.sd-nota{
+  font-size:.76rem; color:var(--txt-3); line-height:1.55; margin-top:16px;
+  background:var(--linea-s); border-radius:var(--r-sm); padding:10px 13px;
+}
 </style>
 </head>
 <body>
