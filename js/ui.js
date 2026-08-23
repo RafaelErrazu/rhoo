@@ -38,7 +38,11 @@ function modal({ titulo, subtitulo, campos = [], ok = 'Guardar',
             ctl = '<textarea id="'+id+'" rows="3"'+req+'>'+(c.valor||'')+'</textarea>';
           } else {
             const tipo = { num:'number', fecha:'date', tel:'tel', mail:'email' }[c.t] || 'text';
-            ctl = '<input type="'+tipo+'" id="'+id+'" value="'+(c.valor??'')+'"'
+        // step any en numericos: sin esto el navegador solo acepta enteros y
+        // un sueldo de 853.07 se rechaza como "valor invalido".
+        ctl = '<input type="'+tipo+'" id="'+id+'"'
+            + (c.t === 'num' ? ' step="any"' : '')
+            + ' value="'+(c.valor??'')+'"'
                 + (c.max ? ' maxlength="'+c.max+'"' : '')
                 + (c.patron ? ' pattern="'+c.patron+'"' : '')
                 + req+'>';
