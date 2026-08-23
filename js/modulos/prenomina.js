@@ -233,14 +233,15 @@ function nmPintarDet(){
               : '<button class="btn-sec-claro" onclick="nmEstado(\'abierto\')">'
                 + '<i class="fas fa-rotate-left"></i> Volver a abierto</button>')
             + (filas.length
-              ? '<button class="btn-sec-claro" onclick="nmCSV()">'
-                + '<i class="fas fa-file-csv"></i> Exportar</button>'
-                + '<button class="btn-sec-claro" onclick="nmRecibosTodos()">'
-                + '<i class="fas fa-print"></i> Recibos</button>' : '')
+              ? '<button class="btn-sec-claro" onclick="nmEstado(\'cerrado\')">'
+                + '<i class="fas fa-lock"></i> Cerrar periodo</button>'
               : ''))
         + (filas.length
           ? '<button class="btn-sec-claro" onclick="nmCSV()">'
-            + '<i class="fas fa-file-csv"></i> Exportar</button>' : '')
+            + '<i class="fas fa-file-csv"></i> Exportar</button>'
+            + '<button class="btn-sec-claro" onclick="nmRecibosTodos()">'
+            + '<i class="fas fa-print"></i> Recibos</button>'
+          : '')
         + '</div>'
       : '')
 
