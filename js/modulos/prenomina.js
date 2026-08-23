@@ -456,7 +456,8 @@ function nmFila(empId){
       + linea('Prima dominical', f.importe_prima_dom, 'art. 71')
       + linea('Vacaciones', f.importe_vacaciones)
       + linea('Prima vacacional', f.importe_prima_vac)
-      + linea('Otras percepciones', f.otras_percepciones)
+      + movs.filter(m => m.naturaleza === 'percepcion')
+            .map(m => linea(m.concepto, m.importe, m.nota||null)).join('')
       + '<div class="nm-ln tot"><span>Total percepciones</span>'
       + '<b class="num">'+nmM(f.total_percepciones)+'</b></div>'
       + '</div>'
@@ -474,7 +475,8 @@ function nmFila(empId){
               : ' · '+Math.round(f.minutos_retardo)+' minutos')
           + '</em></span>'
           + '<b class="num">'+nmM(f.importe_retardos)+'</b></div>' : '')
-      + linea('Otras deducciones', f.otras_deducciones)
+      + movs.filter(m => m.naturaleza === 'deduccion')
+            .map(m => linea(m.concepto, m.importe, m.nota||null)).join('')
       + (Number(f.total_deducciones)
         ? '<div class="nm-ln tot"><span>Total deducciones</span>'
           + '<b class="num">'+nmM(f.total_deducciones)+'</b></div>'
@@ -826,6 +828,11 @@ function nmRcbLn(et, val, nota){
 }
 
 function nmRecibo(f){
+  // Los conceptos capturados van por nombre y no sumados en "otras": quien
+  // recibe el papel tiene derecho a saber que le descontaron.
+  const movs = (_nmDet.movimientos||[]).filter(m => m.empleado_id === f.empleado_id);
+  const movsDe = nat => movs.filter(m => m.naturaleza === nat)
+    .map(m => nmRcbLn(m.concepto, m.importe, m.nota || null)).join('');
   const per = _nmDet.periodo;
 
   const dias = [
@@ -875,7 +882,7 @@ function nmRecibo(f){
     + nmRcbLn('Prima dominical', f.importe_prima_dom, 'art. 71 LFT')
     + nmRcbLn('Vacaciones', f.importe_vacaciones)
     + nmRcbLn('Prima vacacional', f.importe_prima_vac, 'art. 80 LFT')
-    + nmRcbLn('Otras percepciones', f.otras_percepciones)
+    + movsDe('percepcion')
     + '<tr class="rc-tot"><td>Total</td>'
     + '<td class="rc-num">'+nmM(f.total_percepciones)+'</td></tr>'
     + '</table></section>'
@@ -887,7 +894,7 @@ function nmRecibo(f){
         Number(f.faltas_por_retardo)
           ? nmNum(f.faltas_por_retardo)+' día(s)'
           : Math.round(f.minutos_retardo||0)+' minutos')
-    + nmRcbLn('Otras deducciones', f.otras_deducciones)
+    + movsDe('deduccion')
     + (Number(f.total_deducciones)
       ? '<tr class="rc-tot"><td>Total</td>'
         + '<td class="rc-num">'+nmM(f.total_deducciones)+'</td></tr>'
