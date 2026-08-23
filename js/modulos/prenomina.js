@@ -434,6 +434,7 @@ function nmFila(empId){
          ['Vacaciones', f.dias_vacaciones], ['Incapacidad', f.dias_incapacidad],
          ['Permiso c/goce', f.dias_permiso_cg], ['Permiso s/goce', f.dias_permiso_sg],
          ['Faltas', f.faltas], ['Retardos', f.retardos],
+         ['Días por retardo', f.faltas_por_retardo],
          ['Festivo lab.', f.dias_festivo_lab],
          ['Descanso lab.', f.dias_descanso_lab],
          ['Domingos lab.', f.domingos_lab]]
@@ -462,6 +463,14 @@ function nmFila(empId){
         ? '<div class="nm-ln"><span>Séptimo día perdido '
           + '<em>'+nmNum(f.septimo_perdido)+' día(s) por faltas</em></span>'
           + '<b class="num">'+nmM(Math.abs(f.importe_septimo))+'</b></div>' : '')
+      + (Number(f.importe_retardos)
+        ? '<div class="nm-ln"><span>Descuento por retardos '
+          + '<em>'+f.retardos+' retardo(s)'
+          + (Number(f.faltas_por_retardo)
+              ? ' · '+nmNum(f.faltas_por_retardo)+' día(s) descontados'
+              : ' · '+Math.round(f.minutos_retardo)+' minutos')
+          + '</em></span>'
+          + '<b class="num">'+nmM(f.importe_retardos)+'</b></div>' : '')
       + linea('Otras deducciones', f.otras_deducciones)
       + (Number(f.total_deducciones)
         ? '<div class="nm-ln tot"><span>Total deducciones</span>'
@@ -750,7 +759,9 @@ function nmCSV(){
     ['Vacaciones','dias_vacaciones'], ['Incapacidad','dias_incapacidad'],
     ['Permiso c/goce','dias_permiso_cg'], ['Permiso s/goce','dias_permiso_sg'],
     ['Faltas','faltas'], ['Séptimo perdido','septimo_perdido'],
-    ['Retardos','retardos'],
+    ['Retardos','retardos'], ['Minutos de retardo','minutos_retardo'],
+    ['Días por retardo','faltas_por_retardo'],
+    ['Descuento retardos','importe_retardos'],
     ['Horas dobles','horas_dobles'], ['Horas triples','horas_triples'],
     ['Horas excedidas','horas_excedidas'],
     ['Festivo lab.','dias_festivo_lab'], ['Descanso lab.','dias_descanso_lab'],
