@@ -21,8 +21,10 @@ const CFG_SECCIONES = [
         label:'Retardos que equivalen a una falta',
         nota:'0 desactiva la acumulación.' },
       { k:'descuenta_tiempo_retardo', t:'bool',
-        label:'Descontar del sueldo el tiempo del retardo',
-        nota:'Si se apaga, el retardo solo se registra y acumula.' },
+          label:'Descontar del sueldo el tiempo del retardo',
+          nota:'Solo aplica si la acumulación está en 0. Con las dos activas '
+             + 'se descuenta el día completo (acumulación) y no los minutos: '
+             + 'cobrar ambos sería sancionar dos veces lo mismo.' },
       { k:'checada_faltante', t:'opc',
         opciones:[
           ['incompleta','Dejar el día incompleto para que RH lo revise'],
