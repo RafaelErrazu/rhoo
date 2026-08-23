@@ -172,7 +172,7 @@ async function esGrupoNuevo(){
       { k:'clave', label:'Clave', t:'texto', req:true, ancho:'mitad', max:12,
         nota:'Corta. Ej. NORTE, GRAL.' },
       { k:'nombre', label:'Nombre del grupo', t:'texto', req:true, ancho:'mitad' },
-      { k:'reglas', label:'¿Quién define las reglas?', t:'opc', req:true,
+      { k:'reglas', label:'¿Quién define las reglas?', t:'select', req:true,
         valor:'grupo',
         opciones:[
           ['grupo','El grupo, iguales para todas sus empresas'],
@@ -204,7 +204,7 @@ async function esGrupoEditar(id){
     ok:'Guardar',
     campos:[
       { k:'nombre', label:'Nombre del grupo', t:'texto', req:true, valor:g.nombre },
-      { k:'reglas', label:'¿Quién define las reglas?', t:'opc', req:true,
+      { k:'reglas', label:'¿Quién define las reglas?', t:'select', req:true,
         valor:g.reglas_desde,
         opciones:[
           ['grupo','El grupo, iguales para todas sus empresas'],
