@@ -94,6 +94,7 @@ function nmPintarTab(){
     + (g.length
       ? '<div class="nm-grupos-tira">'
         + g.map(x => '<span class="nm-gr'+(x.activo?'':' off')+'">'
+            + (x.empresa ? '<i class="nm-gr-emp">'+nmE(x.empresa)+'</i> ' : '')
             + '<b>'+nmE(x.clave)+'</b> '+nmE(x.nombre)
             + ' <em>'+x.frecuencia+' · '+x.empleados+' persona(s)</em></span>').join('')
         + '</div>'
@@ -102,7 +103,9 @@ function nmPintarTab(){
     + (p.length
       ? '<div class="nm-scroll"><div class="tb-tabla"><table>'
         + '<thead><tr>'
-        + '<th>Periodo</th><th>Grupo</th><th>Rango</th><th>Pago</th>'
+        + '<th>Periodo</th>'
+        + ((_nmTab.empresas||[]).length > 1 ? '<th>Empresa</th>' : '')
+        + '<th>Grupo</th><th>Rango</th><th>Pago</th>'
         + '<th>Estado</th><th class="der">Personas</th>'
         + '<th class="der">Percepciones</th><th class="der">Deducciones</th>'
         + '<th class="der">Neto estimado</th>'
@@ -116,6 +119,10 @@ function nmPintarTab(){
                   + ' renglón(es) con avisos"><i class="fas fa-triangle-exclamation"></i> '
                   + x.con_avisos+'</span>' : '')
               + '</td>'
+              + ((_nmTab.empresas||[]).length > 1
+                ? '<td>'+nmE(x.empresa||'')+'<span class="tb-sub">'
+                  + nmE(x.razon_social||'')+'</span></td>'
+                : '')
               + '<td>'+nmE(x.grupo_clave)+'<span class="tb-sub">'
               + nmE(x.grupo)+'</span></td>'
               + '<td class="num">'+nmFecha(x.desde)+' al '+nmFecha(x.hasta)
@@ -131,7 +138,8 @@ function nmPintarTab(){
           }).join('')
         + '</tbody>'
         + (p.length > 1
-          ? '<tfoot><tr><td colspan="8">Total del año</td>'
+          ? '<tfoot><tr><td colspan="'
+            + ((_nmTab.empresas||[]).length > 1 ? 9 : 8)+'">Total del año</td>'
             + '<td class="num der"><b>'+nmM(totNeto)+'</b></td></tr></tfoot>'
           : '')
         + '</table></div></div>'
@@ -199,6 +207,10 @@ function nmPintarDet(){
     + '<i class="fas fa-arrow-left"></i> Periodos</button>'
     + '<div class="nm-det-tit">'
     + '<h3>'+nmE(per.grupo)+' · periodo #'+per.numero+'</h3>'
+    + (per.razon_social
+      ? '<p class="nm-det-emp">'+nmE(per.razon_social)
+        + (per.rfc ? ' · RFC '+nmE(per.rfc) : '')+'</p>'
+      : '')
     + '<p>'+nmFecha(per.desde)+' al '+nmFecha(per.hasta)+' de '+per.anio
     + ' · '+per.dias+' días · pago '+nmFecha(per.fecha_pago)+'</p>'
     + '</div>'
@@ -688,10 +700,20 @@ function nmGrupos(){
 }
 
 async function nmGrupoNuevo(){
+  const emps = _nmTab.empresas || [];
+
   const r = await modal({
     titulo:'Nuevo grupo de pago',
+    subtitulo: emps.length > 1
+      ? 'El grupo pertenece a una empresa: su nómina se timbra con ese RFC.'
+      : null,
     ok:'Crear',
     campos:[
+      // Con una sola empresa no se pregunta: no hay decisión que tomar.
+      ...(emps.length > 1
+        ? [{ k:'empresa', label:'Empresa', t:'select', req:true,
+             opciones: emps.map(e => [e.id, e.clave+' · '+e.razon_social]) }]
+        : []),
       { k:'clave', label:'Clave', t:'texto', req:true, ancho:'mitad', max:12,
         nota:'Corta, para identificarlo. Ej. QNA, SEM.' },
       { k:'nombre', label:'Nombre', t:'texto', req:true, ancho:'mitad' },
@@ -709,7 +731,8 @@ async function nmGrupoNuevo(){
   const { error } = await sb.rpc('nomina_grupo_guardar', {
     p_clave: r.clave, p_nombre: r.nombre, p_frecuencia: r.frecuencia,
     p_dias_para_pago: Number(r.dias) || 5, p_activo: true,
-    p_centro_id: null, p_id: null
+    p_centro_id: null, p_id: null,
+    p_razon_id: r.empresa || (emps.length === 1 ? emps[0].id : null)
   });
   if(error){ toast('error', error.message); return; }
 
@@ -846,7 +869,10 @@ function nmRecibo(f){
 
   return '<article class="rc">'
     + '<header class="rc-top">'
-    + '<div><h1>'+nmE(nmTenant())+'</h1>'
+    // La razon social identifica legalmente al patron. El nombre del tenant es
+    // solo la cuenta que paga la suscripcion.
+    + '<div><h1>'+nmE(per.razon_social || nmTenant())+'</h1>'
+    + (per.rfc ? '<p class="rc-rfc">RFC '+nmE(per.rfc)+'</p>' : '')
     + '<p>Recibo de prenómina · '+nmE(per.grupo)+' · periodo #'+per.numero
     + ' de '+per.anio+'</p></div>'
     + '<div class="rc-per">'
@@ -1010,6 +1036,7 @@ body{
 }
 .rc-top h1{font-size:15pt; font-weight:900; letter-spacing:-.2pt}
 .rc-top p{font-size:9pt; color:#4A5568; margin-top:1mm}
+.rc-rfc{font-size:8.5pt; color:#4A5568; margin-top:.5mm; font-weight:700}
 .rc-per{text-align:right; font-size:8.5pt; color:#4A5568}
 .rc-per span{display:block; line-height:1.5}
 .rc-emp{

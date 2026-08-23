@@ -1789,6 +1789,107 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
   font-size:.76rem; color:var(--txt-3); line-height:1.55; margin-top:16px;
   background:var(--linea-s); border-radius:var(--r-sm); padding:10px 13px;
 }
+/* ── Estructura empresarial ── */
+.es-top{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:20px; flex-wrap:wrap; margin-bottom:20px;
+}
+.es-top h3{font-size:1.05rem; font-weight:800}
+.es-top p{font-size:.81rem; color:var(--txt-2); margin-top:3px; max-width:52ch;
+  line-height:1.55}
+.es-top-btns{display:flex; gap:8px; flex-wrap:wrap}
+.es-alerta{
+  display:flex; gap:12px; align-items:flex-start;
+  background:#FEF3E2; border-radius:var(--r-md);
+  padding:14px 16px; margin-bottom:20px;
+}
+.es-alerta i{color:#B45309; margin-top:3px}
+.es-alerta b{font-size:.87rem}
+.es-alerta p{font-size:.79rem; color:var(--txt-2); line-height:1.55; margin-top:3px}
+
+.es-grupo{margin-bottom:26px}
+.es-grupo-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:14px; padding-bottom:9px; margin-bottom:12px;
+  border-bottom:1px solid var(--linea);
+}
+.es-grupo-head b{font-size:.94rem; font-weight:800}
+.es-grupo-head span{display:block; font-size:.75rem; color:var(--txt-3); margin-top:2px}
+.es-link{
+  background:none; border:none; cursor:pointer; font-family:inherit;
+  font-size:.76rem; font-weight:700; color:var(--brand-p); padding:4px 0;
+}
+.es-link:hover{text-decoration:underline}
+.es-vacio-grupo{font-size:.81rem; color:var(--txt-3); padding:8px 0}
+
+/* Una tarjeta por empresa, no una rejilla: son pocas y cada una necesita
+   espacio para sus datos fiscales. */
+.es-lista{display:flex; flex-direction:column; gap:12px}
+.es-emp{
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-lg); padding:16px 18px;
+}
+.es-emp.incompleta{border-color:#F5C97E; background:#FFFDF8}
+.es-emp.off{opacity:.6}
+.es-emp-head{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:14px; margin-bottom:14px;
+}
+.es-emp-id b{display:block; font-size:1rem; font-weight:800; line-height:1.35}
+.es-emp-id span{display:block; font-size:.76rem; color:var(--txt-3); margin-top:2px}
+.es-emp-btns{display:flex; gap:12px; flex-shrink:0}
+.es-emp-datos{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+  gap:12px 18px; padding:13px 0; border-top:1px solid var(--linea-s);
+}
+.es-dato span{
+  display:block; font-size:.68rem; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--txt-3);
+}
+.es-dato b{display:block; font-size:.86rem; margin-top:3px; word-break:break-word}
+.es-nulo{color:var(--txt-3) !important; font-weight:400 !important;
+  font-style:italic}
+.es-emp-pie{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  padding-top:12px; border-top:1px solid var(--linea-s);
+  font-size:.78rem; color:var(--txt-2);
+}
+.es-emp-pie b{font-weight:800; color:var(--txt)}
+.es-falta{
+  display:inline-flex; align-items:center; gap:6px; margin-left:auto;
+  color:#B45309; font-weight:600;
+}
+.es-ok{
+  display:inline-flex; align-items:center; gap:6px; margin-left:auto;
+  color:var(--ok); font-weight:600;
+}
+.es-expl{font-size:.81rem; color:var(--txt-2); line-height:1.6; margin-bottom:14px}
+.es-primas{display:flex; flex-direction:column; gap:8px}
+.es-prima{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-md); padding:12px 14px;
+}
+.es-prima.on{border-color:var(--brand-b); background:var(--brand-s)}
+.es-prima b{font-size:1.05rem; font-weight:800; font-variant-numeric:tabular-nums}
+.es-prima span{display:block; font-size:.75rem; color:var(--txt-3); margin-top:2px}
+.es-prima em{display:block; font-size:.76rem; color:var(--txt-2); margin-top:4px;
+  font-style:italic}
+
+/* Empresa en el tablero de nómina */
+.nm-gr-emp{
+  font-style:normal; font-size:.68rem; font-weight:800;
+  color:var(--brand-p); background:var(--panel);
+  padding:1px 6px; border-radius:4px; margin-right:2px;
+}
+.nm-det-emp{font-size:.76rem; color:var(--txt-3); margin-top:3px}
+
+@media(max-width:900px){
+  .es-top-btns{width:100%}
+  .es-top-btns button{flex:1; justify-content:center}
+  .es-emp-datos{grid-template-columns:repeat(2, minmax(0,1fr))}
+  .es-falta, .es-ok{margin-left:0; width:100%}
+}
 </style>
 </head>
 <body>
@@ -1898,6 +1999,7 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
 <script src="js/modulos/calendario.js"></script>
 <script src="js/modulos/asistencia.js"></script>
 <script src="js/modulos/prenomina.js"></script>
+<script src="js/modulos/estructura.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════
    RHoo! · Shell
@@ -1928,8 +2030,9 @@ const MODULOS = [
     { id:'proveedor', nombre:'Clientes', icono:'fa-building', roles:'proveedor' }
   ]},
   { grupo:'Administración', items:[
+    { id:'estructura', nombre:'Empresas',       icono:'fa-building',  roles:'admin' },
     { id:'config',     nombre:'Configuraci&oacute;n', icono:'fa-sliders', roles:'admin' },
-    { id:'usuarios',   nombre:'Usuarios',    icono:'fa-user-gear',      roles:'admin' }
+    { id:'usuarios',   nombre:'Usuarios',       icono:'fa-user-gear', roles:'admin' }
   ]}
 ];
 
@@ -2004,6 +2107,7 @@ const RUTAS = {
   usuarios:      () => moduloUsuarios(),
   calendario:    () => moduloCalendario(),
   prenomina:     () => moduloPrenomina(),
+  estructura:    () => moduloEstructura(),
   inicio:        () => moduloInicio()
 };
 
