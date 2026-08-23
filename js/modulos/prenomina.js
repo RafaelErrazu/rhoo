@@ -233,8 +233,10 @@ function nmPintarDet(){
               : '<button class="btn-sec-claro" onclick="nmEstado(\'abierto\')">'
                 + '<i class="fas fa-rotate-left"></i> Volver a abierto</button>')
             + (filas.length
-              ? '<button class="btn-sec-claro" onclick="nmEstado(\'cerrado\')">'
-                + '<i class="fas fa-lock"></i> Cerrar periodo</button>'
+              ? '<button class="btn-sec-claro" onclick="nmCSV()">'
+                + '<i class="fas fa-file-csv"></i> Exportar</button>'
+                + '<button class="btn-sec-claro" onclick="nmRecibosTodos()">'
+                + '<i class="fas fa-print"></i> Recibos</button>' : '')
               : ''))
         + (filas.length
           ? '<button class="btn-sec-claro" onclick="nmCSV()">'
@@ -498,7 +500,9 @@ function nmFila(empId){
                   + m.id+'\',\''+empId+'\')"><i class="fas fa-trash"></i></button>')
               + '</div>').join('')
           + '</div>'
-        : '<p class="nm-nada-min">Sin bonos, préstamos ni otros conceptos.</p>')
+        : '<p class="nm-nada-min">Sin bonos, préstamos ni otros conceptos.</p>',
+    acciones:'<button class="btn-sec-claro" onclick="nmReciboUno(\''+empId+'\')">'
+      + '<i class="fas fa-print"></i> Imprimir recibo</button>'
   });
 }
 
@@ -795,3 +799,275 @@ function nmCSV(){
   URL.revokeObjectURL(a.href);
   toast('ok', filas.length+' renglón(es) exportados');
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Recibos imprimibles
+   Se usa la impresion del navegador en lugar de una libreria de
+   PDF: el texto queda real (seleccionable y buscable), pesa
+   nada y no depende de un CDN. html2canvas convertiria el
+   recibo en imagen y multiplicaria el peso por diez.
+   ═══════════════════════════════════════════════════════════ */
+
+function nmTenant(){
+  return (typeof Sesion !== 'undefined' && Sesion.tenant && Sesion.tenant.nombre)
+    ? Sesion.tenant.nombre
+    : (document.querySelector('.barra-tenant')?.textContent || '').trim();
+}
+
+/* Una fila del recibo. Los renglones en cero no se pintan: un
+   recibo con quince ceros obliga a leer todo para encontrar los
+   tres datos que importan. */
+function nmRcbLn(et, val, nota){
+  if(!Number(val)) return '';
+  return '<tr><td>'+nmE(et)
+    + (nota ? ' <span class="rc-nota">'+nmE(nota)+'</span>' : '')
+    + '</td><td class="rc-num">'+nmM(Math.abs(val))+'</td></tr>';
+}
+
+function nmRecibo(f){
+  const per = _nmDet.periodo;
+
+  const dias = [
+    ['Trabajados', f.dias_trabajados], ['Descanso', f.dias_descanso],
+    ['Vacaciones', f.dias_vacaciones], ['Incapacidad', f.dias_incapacidad],
+    ['Permiso c/goce', f.dias_permiso_cg], ['Permiso s/goce', f.dias_permiso_sg],
+    ['Faltas', f.faltas], ['Retardos', f.retardos],
+    ['Festivo lab.', f.dias_festivo_lab], ['Descanso lab.', f.dias_descanso_lab],
+    ['Domingos lab.', f.domingos_lab]
+  ].filter(([,v]) => Number(v));
+
+  return '<article class="rc">'
+    + '<header class="rc-top">'
+    + '<div><h1>'+nmE(nmTenant())+'</h1>'
+    + '<p>Recibo de prenómina · '+nmE(per.grupo)+' · periodo #'+per.numero
+    + ' de '+per.anio+'</p></div>'
+    + '<div class="rc-per">'
+    + '<span>Del '+nmFecha(per.desde)+' al '+nmFecha(per.hasta)+'</span>'
+    + '<span>'+per.dias+' días · pago '+nmFecha(per.fecha_pago)+'</span>'
+    + '</div>'
+    + '</header>'
+
+    + '<section class="rc-emp">'
+    + '<div><b>'+nmE(f.nombre)+'</b>'
+    + '<span>'+nmE(f.no_empleado||'')
+    + (f.puesto ? ' · '+nmE(f.puesto) : '')+'</span></div>'
+    + '<div class="rc-emp-num">'
+    + '<span>Sueldo diario <b>'+nmM(f.sueldo_diario)+'</b></span>'
+    + '<span>SDI <b>'+nmM(f.sdi)+'</b></span>'
+    + '</div>'
+    + '</section>'
+
+    + (dias.length
+      ? '<section class="rc-dias">'
+        + dias.map(([t,v]) => '<span><b>'+nmNum(v)+'</b> '+t+'</span>').join('')
+        + '</section>'
+      : '')
+
+    + '<div class="rc-cols">'
+    + '<section><h2>Percepciones</h2><table>'
+    + nmRcbLn('Sueldo', f.importe_sueldo)
+    + nmRcbLn('Tiempo extra', f.importe_extras,
+        nmNum(f.horas_dobles)+' h dobles'
+        + (Number(f.horas_triples) ? ', '+nmNum(f.horas_triples)+' h triples' : ''))
+    + nmRcbLn('Festivo trabajado', f.importe_festivos, 'art. 75 LFT')
+    + nmRcbLn('Descanso trabajado', f.importe_descanso_lab, 'art. 73 LFT')
+    + nmRcbLn('Prima dominical', f.importe_prima_dom, 'art. 71 LFT')
+    + nmRcbLn('Vacaciones', f.importe_vacaciones)
+    + nmRcbLn('Prima vacacional', f.importe_prima_vac, 'art. 80 LFT')
+    + nmRcbLn('Otras percepciones', f.otras_percepciones)
+    + '<tr class="rc-tot"><td>Total</td>'
+    + '<td class="rc-num">'+nmM(f.total_percepciones)+'</td></tr>'
+    + '</table></section>'
+
+    + '<section><h2>Deducciones</h2><table>'
+    + nmRcbLn('Séptimo día perdido', f.importe_septimo,
+        nmNum(f.septimo_perdido)+' día(s) por faltas')
+    + nmRcbLn('Descuento por retardos', f.importe_retardos,
+        Number(f.faltas_por_retardo)
+          ? nmNum(f.faltas_por_retardo)+' día(s)'
+          : Math.round(f.minutos_retardo||0)+' minutos')
+    + nmRcbLn('Otras deducciones', f.otras_deducciones)
+    + (Number(f.total_deducciones)
+      ? '<tr class="rc-tot"><td>Total</td>'
+        + '<td class="rc-num">'+nmM(f.total_deducciones)+'</td></tr>'
+      : '<tr><td colspan="2" class="rc-vacio">Sin deducciones</td></tr>')
+    + '</table></section>'
+    + '</div>'
+
+    + '<section class="rc-neto">'
+    + '<span>Neto estimado</span><b>'+nmM(f.neto)+'</b>'
+    + '</section>'
+
+    + (Number(f.dias_incapacidad)
+      ? '<p class="rc-obs">Los días de incapacidad no se pagan en nómina: el '
+        + 'subsidio lo cubre el IMSS.</p>' : '')
+
+    // El aviso legal va en el recibo, no en la pantalla: el papel es lo que
+    // sale de la oficina y lo que alguien puede confundir con un CFDI.
+    + '<footer class="rc-pie">'
+    + '<p><b>Documento interno de revisión.</b> El importe es estimado: no '
+    + 'incluye ISR ni cuotas del IMSS, y no sustituye al recibo de nómina '
+    + 'timbrado (CFDI).</p>'
+    + '<div class="rc-firmas">'
+    + '<span>Elaboró</span><span>Autorizó</span>'
+    + '<span>Recibí de conformidad<br>'+nmE(f.nombre)+'</span>'
+    + '</div>'
+    + '<p class="rc-gen">Generado el '
+    + new Date().toLocaleString('es-MX',
+        { day:'2-digit', month:'long', year:'numeric',
+          hour:'2-digit', minute:'2-digit' })
+    + ' · RHoo!</p>'
+    + '</footer>'
+    + '</article>';
+}
+
+/* Se imprime en un iframe y no en una ventana nueva: los
+   bloqueadores de popups matan window.open() y el usuario solo
+   ve que "no pasa nada" al dar clic. */
+function nmImprimir(html, titulo){
+  const previo = document.getElementById('nm-print');
+  if(previo) previo.remove();
+
+  const fr = document.createElement('iframe');
+  fr.id = 'nm-print';
+  fr.setAttribute('aria-hidden','true');
+  fr.style.cssText = 'position:fixed;width:0;height:0;border:0;left:-9999px';
+  document.body.appendChild(fr);
+
+  const d = fr.contentWindow.document;
+  d.open();
+  d.write('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
+    + '<title>'+titulo+'</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">'
+    + '<style>'+NM_CSS_RECIBO+'</style></head><body>'
+    + html + '</body></html>');
+  d.close();
+
+  // Se espera a que carguen los estilos y la fuente: imprimir de inmediato
+  // saca la primera hoja sin formato.
+  const lanzar = () => {
+    try{
+      fr.contentWindow.focus();
+      fr.contentWindow.print();
+    }catch(e){
+      toast('error','El navegador bloqueó la impresión');
+    }
+    // No se borra el iframe: en Chrome, quitarlo antes de que el usuario
+    // cierre el dialogo cancela la impresion.
+    setTimeout(() => fr.remove(), 60000);
+  };
+
+  if(fr.contentWindow.document.fonts && fr.contentWindow.document.fonts.ready){
+    fr.contentWindow.document.fonts.ready.then(() => setTimeout(lanzar, 120));
+  } else {
+    setTimeout(lanzar, 600);
+  }
+}
+
+function nmReciboUno(empId){
+  const f = (_nmDet.filas||[]).find(x => x.empleado_id === empId);
+  if(!f) return;
+  nmImprimir(nmRecibo(f), 'Recibo '+(f.no_empleado||f.nombre));
+}
+
+function nmRecibosTodos(){
+  // Respeta el filtro de la pantalla: si RH filtro por avisos, quiere revisar
+  // esos y no los 82.
+  const filas = nmFilasVisibles();
+  if(!filas.length){ toast('error','No hay renglones que imprimir'); return; }
+
+  if(filas.length > 20){
+    toast('ok','Preparando '+filas.length+' recibos...');
+  }
+  nmImprimir(filas.map(nmRecibo).join(''),
+    'Recibos '+_nmDet.periodo.grupo_clave+' '+_nmDet.periodo.numero);
+}
+
+/* CSS del documento impreso. Va aparte porque vive dentro del
+   iframe y no hereda nada de la app. */
+const NM_CSS_RECIBO = `
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif;
+  color:#0D1321; background:#fff; font-size:11pt;
+}
+.rc{
+  padding:14mm 14mm 10mm;
+  page-break-after:always; break-after:page;
+}
+.rc:last-child{page-break-after:auto; break-after:auto}
+.rc-top{
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:12mm; padding-bottom:4mm; border-bottom:2px solid #2EC4B6;
+}
+.rc-top h1{font-size:15pt; font-weight:900; letter-spacing:-.2pt}
+.rc-top p{font-size:9pt; color:#4A5568; margin-top:1mm}
+.rc-per{text-align:right; font-size:8.5pt; color:#4A5568}
+.rc-per span{display:block; line-height:1.5}
+.rc-emp{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  gap:10mm; margin-top:5mm;
+}
+.rc-emp b{display:block; font-size:12.5pt; font-weight:800}
+.rc-emp span{font-size:9pt; color:#4A5568}
+.rc-emp-num{text-align:right; font-size:8.5pt; color:#4A5568}
+.rc-emp-num span{display:block; line-height:1.6}
+.rc-emp-num b{
+  display:inline; font-size:10pt; font-weight:800; color:#0D1321;
+  font-variant-numeric:tabular-nums;
+}
+.rc-dias{
+  display:flex; flex-wrap:wrap; gap:2mm;
+  margin-top:5mm; padding:3mm; background:#F0F4F4; border-radius:2mm;
+}
+.rc-dias span{font-size:8.5pt; color:#4A5568}
+.rc-dias span:not(:last-child)::after{content:'·'; margin-left:2mm; color:#8494A7}
+.rc-dias b{font-weight:800; color:#0D1321; font-variant-numeric:tabular-nums}
+.rc-cols{display:flex; gap:8mm; margin-top:6mm; align-items:flex-start}
+.rc-cols section{flex:1; min-width:0}
+.rc-cols h2{
+  font-size:8pt; font-weight:800; letter-spacing:.6pt; text-transform:uppercase;
+  color:#8494A7; padding-bottom:1.5mm; border-bottom:1px solid #E4EAEA;
+}
+.rc-cols table{width:100%; border-collapse:collapse; margin-top:1mm}
+.rc-cols td{
+  padding:1.8mm 0; font-size:9.5pt; vertical-align:baseline;
+  border-bottom:1px solid #F0F4F4;
+}
+.rc-num{
+  text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;
+  padding-left:4mm !important;
+}
+.rc-nota{display:block; font-size:7.5pt; color:#8494A7; margin-top:.4mm}
+.rc-tot td{
+  font-weight:800; border-top:1.5px solid #0D1321; border-bottom:none;
+  padding-top:2.2mm !important;
+}
+.rc-vacio{color:#8494A7; font-size:9pt; font-style:italic}
+.rc-neto{
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-top:6mm; padding:4mm 5mm; background:#0D1321; color:#fff;
+  border-radius:2mm;
+}
+.rc-neto span{font-size:9.5pt; color:rgba(255,255,255,.7); font-weight:600}
+.rc-neto b{font-size:16pt; font-weight:900; font-variant-numeric:tabular-nums}
+.rc-obs{font-size:8.5pt; color:#4A5568; margin-top:4mm; line-height:1.5}
+.rc-pie{margin-top:8mm}
+.rc-pie > p{
+  font-size:8pt; color:#4A5568; line-height:1.55;
+  padding:3mm; background:#F0F4F4; border-radius:2mm;
+}
+.rc-firmas{
+  display:flex; gap:8mm; margin-top:14mm; text-align:center;
+}
+.rc-firmas span{
+  flex:1; font-size:8pt; color:#4A5568;
+  border-top:1px solid #0D1321; padding-top:1.5mm; line-height:1.4;
+}
+.rc-gen{font-size:7pt; color:#8494A7; margin-top:6mm; text-align:center}
+
+@page{size:letter; margin:0}
+@media print{
+  body{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+}
+`;
