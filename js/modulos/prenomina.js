@@ -501,7 +501,7 @@ function nmFila(empId){
                   + m.id+'\',\''+empId+'\')"><i class="fas fa-trash"></i></button>')
               + '</div>').join('')
           + '</div>'
-        : '<p class="nm-nada-min">Sin bonos, préstamos ni otros conceptos.</p>',
+        : '<p class="nm-nada-min">Sin bonos, préstamos ni otros conceptos.</p>'),
     acciones:'<button class="btn-sec-claro" onclick="nmReciboUno(\''+empId+'\')">'
       + '<i class="fas fa-print"></i> Imprimir recibo</button>'
   });
