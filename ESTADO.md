@@ -1,7 +1,7 @@
 # RHoo! · Estado del proyecto
 
 > Bitácora viva. Se actualiza al cerrar cada módulo o al descubrir un pendiente.
-> Última actualización: 22 de agosto de 2026.
+> Última actualización: 22 de agosto de 2026, 23:50.
 
 ---
 
@@ -23,6 +23,46 @@ Sidebar y login oscuros, contenido claro.
 
 ---
 
+## Estructura empresarial
+
+Cuatro niveles, **siempre presentes**:
+
+    Tenant                el cliente que paga la suscripción
+      └─ Grupo            agrupación comercial: consolida y hereda reglas
+          └─ Razón social RFC, registro patronal, prima de riesgo
+              └─ Centro   domicilio físico donde se checa
+
+Un cliente con una sola empresa tiene un grupo con una razón social y no se
+entera: la UI oculta los niveles con un solo elemento. Se decidió así para no
+tener dos modelos y llenar el código de condicionales.
+
+**Lo configurable es el comportamiento, no la estructura.** La llave
+`grupos_empresariales.reglas_desde` decide de dónde salen las reglas:
+
+- `grupo`: el grupo estandariza, la config de la empresa se ignora.
+- `empresa`: cada razón social define lo suyo, con el grupo como respaldo.
+
+La cadena de resolución es **empresa → grupo → tenant → defaults**, vía
+`app.cfg_razon()`. Con eso un grupo homogéneo no captura nada y uno heterogéneo
+ajusta solo sus excepciones.
+
+### Reglas duras de este modelo
+
+- **La nómina cuelga de la razón social, no del grupo.** El CFDI se timbra con
+  un RFC específico; un periodo que abarque dos empresas sería imposible de
+  timbrar.
+- **El empleado pertenece a una razón social** (`empleados.razon_id`), no a
+  `sueldos`. Cambiar de empresa es legalmente baja y alta con contrato nuevo, se
+  registra como movimiento laboral.
+- **Un trigger valida que el centro y el empleado sean de la misma empresa.**
+  Al mover a alguien, se mueve primero el centro; poner `razon_id = null` hace
+  que el trigger la tome del centro.
+- **La prima de riesgo va historizada** (`primas_riesgo`, con vigencias). Se
+  declara cada febrero y cambia: recalcular un periodo viejo debe usar la de
+  entonces. Se captura como fracción (0.005425), no como porcentaje.
+
+---
+
 ## Módulos terminados
 
 Todos probados en SQL y en la app.
@@ -41,7 +81,8 @@ Todos probados en SQL y en la app.
 - **NOM-035** · campañas, cuestionarios, dashboard, informe 7.7, intervención, difusión
 - **Notificaciones** · campana, generador diario, cumpleaños y aniversarios
 - **Calendario** · vista mes y ausencias del equipo, tablero de inicio
-- **Prenómina** · ver detalle abajo
+- **Prenómina** · completa, ver detalle abajo
+- **Grupos y razones sociales** · estructura, herencia de config, prima de riesgo
 
 ---
 
@@ -69,16 +110,16 @@ nadie lo confunda con un recibo.
 
 ### Arquitectura
 
-- **Grupos de nómina** (`grupos_nomina`): la frecuencia vive en el grupo, no en
-  la persona. Permite semanales y quincenales en paralelo con calendarios
-  distintos. La frecuencia no se edita después de crear el grupo.
-- **Empleado → grupo** se asigna en `sueldos`, que ya está historizado. Mover a
-  alguien de semanal a quincenal deja el histórico intacto.
+- **Grupos de pago** (`grupos_nomina`): la frecuencia vive en el grupo de pago,
+  no en la persona. Permite semanales y quincenales en paralelo. Cada grupo
+  pertenece a una razón social.
+- **Empleado → grupo de pago** se asigna en `sueldos`, que está historizado.
 - Los sueldos tienen vigencia: recalcular un periodo viejo usa el sueldo de
   entonces. **Probado.**
 - Los movimientos recalculan el renglón en el mismo llamado.
-- Cerrar un periodo congela los importes. Reabrir borra la firma de cierre y
-  pide motivo.
+- Cerrar un periodo congela los importes. Reabrir borra la firma y pide motivo.
+- **Recibos imprimibles** individuales y masivos, vía impresión del navegador
+  (sin librerías de PDF). Respetan el filtro activo de la pantalla.
 
 ### Retardos
 
@@ -118,6 +159,7 @@ el motor.
 | 13 | CSV se abría en una sola columna | separador y BOM peleados con Excel español | CSV estándar con comas, comillas y BOM |
 | 14 | Campos numéricos rechazaban decimales | faltaba `step="any"` | agregado en `ui.js`, aplica a todo el sistema |
 | 15 | Dos funciones calculaban días hábiles | `dias_habiles_empleado` y `dias_consumibles` por separado | la primera delega en la segunda |
+| 16 | Recibo decía "Otras deducciones" en lugar del concepto | sumaba los movimientos en un renglón | desglose por nombre de concepto |
 
 ### Criterios que se decidieron y conviene no revertir sin pensar
 
@@ -131,13 +173,33 @@ el motor.
   levanta aviso.
 - `calcular_jornada` sigue marcando `incidencia` en descansos: como registro de
   asistencia es correcto. Quien decide el pago es la prenómina.
+- El recibo dice explícitamente que **no sustituye al CFDI**. El papel sale de
+  la oficina y alguien lo va a confundir.
 
 ---
 
 ## Pendientes
 
 ### Siguiente
-- **Recibo por persona en PDF.** Único pendiente abierto de prenómina.
+- **UI de grupos y razones sociales.** La estructura existe pero solo se
+  administra por SQL. Incluye mostrar la empresa en el tablero de nómina.
+- **El recibo debe llevar razón social y RFC**, no el nombre del tenant. Hoy
+  dice "Cliente Demo SA" porque toma el tenant.
+- **Historial laboral** (`movimientos_laborales`): puesto, departamento, centro,
+  jefe, tipo de contrato y razón social no tienen historia, se sobreescriben.
+  `auditoria` no sirve para eso: es registro técnico, no línea de tiempo del
+  expediente ni base para una constancia laboral.
+
+### Alta de empleado, comparada con la competencia
+Funciona, pero incompleta para vender:
+- **Asistente de alta por pasos.** Hoy un empleado nuevo no puede cobrar ni
+  checar: falta sueldo (otro panel), turno (otro panel) y usuario (otro módulo).
+  Tres viajes que hay que recordar.
+- **Faltan campos**: domicilio (no existe la columna), contacto de emergencia,
+  beneficiarios, nacionalidad, entidad de nacimiento.
+- **Checklist de documentos** obligatorios por puesto.
+- **Contrato**: generación y firma, avisos de vencimiento de temporal y de
+  periodo de prueba.
 
 ### Módulos no empezados
 - Muro social (publicaciones, reacciones, comentarios)
@@ -150,6 +212,12 @@ el motor.
 - Contador de Guía III muestra 72 antes de filtros y guarda 64. Cosmético.
 - Retardos no se acumulan entre periodos, cada periodo cuenta los suyos. Si un
   cliente lo pide acumulativo hay que guardar saldo en tabla.
+- `centros_trabajo.razon_social` sigue como texto, marcada obsoleta. Se borra
+  cuando se confirme que la migración quedó bien.
+- Los grupos migrados se llaman igual que su razón social (heredaron el nombre
+  del tenant). Cosmético, se renombra desde la UI.
+- El módulo de Configuración escribe en el tenant. Hay que decidir qué llaves se
+  administran en cada nivel de la jerarquía.
 - El correo con credenciales del primer admin se manda a mano.
 
 ### Resueltos que estaban mal anotados
@@ -164,10 +232,24 @@ Tenant demo `4629dbe5-8699-414f-b15f-4d761fd3d458` (Cliente Demo SA):
 87 empleados, sueldos aleatorios 350-800, jornadas del 1 al 15 de agosto de
 2026, turno matutino con domingo de descanso, festivo de prueba el 12 de agosto.
 
-Grupos: `QNA` quincenal (82 personas) y `SEM` semanal (5).
+Estructura: grupo `GRAL` con dos razones sociales, `RS01` (57 empleados) y
+`RS02` (30, "Servicios Demo Dos SA de CV"). Grupos de pago: `QNA` quincenal y
+`SEM` semanal.
 
 Casos sembrados para validar el motor: faltas, 12 h extra en una semana,
 domingo laborado, vacaciones, incapacidad, permiso sin goce y retardos.
+
+Netos de control del periodo #15 quincenal, útiles como regresión:
+
+| Empleado | Neto | Qué valida |
+|---|---|---|
+| SC-019 | 13,879.36 | vacaciones, prima, descansos pagados, Fonacot |
+| SC-025 | 11,329.12 | retardos con descuento, festivo laborado |
+| PN-039 | 11,043.44 | vacaciones parciales |
+| PN-053 | 6,744.50 | incapacidad sin pago |
+| PN-017 | 7,094.20 | festivo + descanso laborado + prima dominical |
+| PN-016 | 8,872.61 | faltas, séptimo perdido, bono capturado |
+| SC-023 | 10,756.37 | 9 h dobles + 3 h triples |
 
 ### Cómo probar funciones en el SQL Editor
 
@@ -197,5 +279,11 @@ El editor muestra solo el resultado del último statement.
   catálogo, no afecta al remoto. Lo que importa es `Finished supabase db push`.
 - Al pegar un artefacto en una migración, incluir **solo el SQL**, sin los
   encabezados de pasos.
+- **Cuidado al pegar strings partidos en varias líneas**: el editor de Windows a
+  veces junta las líneas y rompe la concatenación con `||`. Si un `raise
+  exception` da error de sintaxis, ponerlo en una sola línea.
+- `node --check archivo.js` antes de cada push del front: cacha errores de
+  sintaxis sin esperar el deploy.
+- `UPDATE` no acepta `order by ... limit`. Filtrar con `where id = (subconsulta)`.
 - Respaldos probados de punta a punta, incluida la restauración y el login
   contra la base restaurada.
