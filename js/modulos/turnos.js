@@ -315,6 +315,16 @@ async function asignarTurnoA(empId, nombre){
   const cat = await catTurnos();
   const activos = cat.turnos.filter(t => t.activo);
 
+  // Se precarga la asignacion vigente: si alguien solo viene a cambiar el
+  // turno, tener que recordar sus dias de descanso es como se los pisa sin
+  // darse cuenta.
+  const { data: hist } = await sb.rpc('historial_turnos', { p_empleado_id: empId });
+  const vig = (hist||[]).find(x => x.vigente) || null;
+  const vigTurno = vig && vig.turno
+    ? (activos.find(t => t.nombre === vig.turno)||{}).id : null;
+  const vigPatron = vig && vig.patron
+    ? ((cat.patrones||[]).find(p => p.nombre === vig.patron)||{}).id : null;
+
   const r = await modal({
     titulo: 'Asignar turno',
     subtitulo: nombre + '. La asignación anterior se cierra automáticamente; '
@@ -324,21 +334,21 @@ async function asignarTurnoA(empId, nombre){
       { k:'tipo', label:'Esquema', t:'select', req:true,
         opciones: [['fijo','Turno fijo']].concat(
           (cat.patrones||[]).length ? [['patron','Patrón de rotación']] : []),
-        valor:'fijo' },
+        valor: vigPatron ? 'patron' : 'fijo' },
       { k:'turno', label:'Turno fijo', t:'select',
         opciones: activos.map(t => [t.id, t.clave+' · '+t.nombre
           +' ('+t.entrada.slice(0,5)+'-'+t.salida.slice(0,5)+')']),
-        nota:'Se usa si el esquema es turno fijo.' },
+        valor: vigTurno, nota:'Se usa si el esquema es turno fijo.' },
       { k:'patron', label:'Patrón', t:'select',
         opciones: (cat.patrones||[]).map(p => [p.id, p.nombre]),
-        nota:'Se usa si el esquema es patrón.' },
+        valor: vigPatron, nota:'Se usa si el esquema es patrón.' },
       { k:'desde', label:'Vigente desde', t:'fecha', req:true,
         valor: new Date().toLocaleDateString('sv-SE'), ancho:'mitad' },
       { k:'descanso', label:'Días de descanso semanal', t:'multi',
         opciones: [['0','Domingo'],['1','Lunes'],['2','Martes'],
                    ['3','Miércoles'],['4','Jueves'],['5','Viernes'],
                    ['6','Sábado']],
-        valor:['0'],
+        valor: vig ? (vig.descanso||[]).map(String) : ['0'],
         nota:'Puedes marcar más de uno. Solo aplica a turno fijo: en patrón, '
            + 'el descanso va en la secuencia.' }
     ]
