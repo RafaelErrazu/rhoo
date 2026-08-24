@@ -1890,6 +1890,18 @@ table.eq-cal td.eq-finde{background:#FBFDFD}
   .es-emp-datos{grid-template-columns:repeat(2, minmax(0,1fr))}
   .es-falta, .es-ok{margin-left:0; width:100%}
 }
+/* Casillas múltiples en modales */
+.md-multi{display:flex; flex-wrap:wrap; gap:6px}
+.md-chk{
+  display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+  border:1.5px solid var(--linea); border-radius:var(--r-sm);
+  padding:7px 11px; font-size:.8rem; color:var(--txt-2);
+  transition:border-color .16s, background-color .16s;
+}
+.md-chk:hover{border-color:var(--brand-b)}
+.md-chk.on{border-color:var(--brand); background:var(--brand-s);
+  color:var(--brand-p); font-weight:700}
+.md-chk input{accent-color:var(--brand); margin:0}
 </style>
 </head>
 <body>

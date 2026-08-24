@@ -334,12 +334,13 @@ async function asignarTurnoA(empId, nombre){
         nota:'Se usa si el esquema es patrón.' },
       { k:'desde', label:'Vigente desde', t:'fecha', req:true,
         valor: new Date().toLocaleDateString('sv-SE'), ancho:'mitad' },
-      { k:'descanso', label:'Día de descanso semanal', t:'select',
-        opciones: DIAS_SEM.map((d,i) => [String(i), d==='Do'?'Domingo':
-          d==='Lu'?'Lunes':d==='Ma'?'Martes':d==='Mi'?'Miércoles':
-          d==='Ju'?'Jueves':d==='Vi'?'Viernes':'Sábado']),
-        valor:'0', ancho:'mitad',
-        nota:'Solo aplica a turno fijo. En patrón, el descanso va en la secuencia.' }
+      { k:'descanso', label:'Días de descanso semanal', t:'multi',
+        opciones: [['0','Domingo'],['1','Lunes'],['2','Martes'],
+                   ['3','Miércoles'],['4','Jueves'],['5','Viernes'],
+                   ['6','Sábado']],
+        valor:['0'],
+        nota:'Puedes marcar más de uno. Solo aplica a turno fijo: en patrón, '
+           + 'el descanso va en la secuencia.' }
     ]
   });
   if(!r) return;
@@ -349,7 +350,7 @@ async function asignarTurnoA(empId, nombre){
     p_turno_id:  r.tipo === 'fijo'   ? r.turno  : null,
     p_patron_id: r.tipo === 'patron' ? r.patron : null,
     p_desde: r.desde,
-    p_descanso: r.tipo === 'fijo' ? [Number(r.descanso)] : [],
+    p_descanso: r.tipo === 'fijo' ? (r.descanso||[]).map(Number) : [],
     p_ancla: r.tipo === 'patron' ? r.desde : null
   });
 

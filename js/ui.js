@@ -34,6 +34,21 @@ function modal({ titulo, subtitulo, campos = [], ok = 'Guardar',
                   '<option value="'+v+'"'+(c.valor===v?' selected':'')+'>'+t+'</option>'
                 ).join('')
               + '</select>';
+          } else if(c.t === 'multi'){
+          // Casillas y no un select multiple: nadie sabe que hay que dejar
+          // Ctrl presionado, y el descanso de dos dias es lo normal en
+          // administrativos.
+           ctl = '<div class="md-multi" id="md-'+c.k+'">'
+            + (c.opciones||[]).map(([v,t]) => {
+                const marcado = (c.valor||[]).map(String).includes(String(v));
+                return '<label class="md-chk'+(marcado?' on':'')+'">'
+                  + '<input type="checkbox" value="'+v+'"'
+                  + (marcado?' checked':'')
+                  + ' onchange="this.closest(\'.md-chk\').classList'
+                  + '.toggle(\'on\', this.checked)">'
+                  + '<span>'+t+'</span></label>';
+              }).join('')
+            + '</div>';
           } else if(c.t === 'area'){
             ctl = '<textarea id="'+id+'" rows="3"'+req+'>'+(c.valor||'')+'</textarea>';
           } else {
@@ -94,10 +109,16 @@ function modal({ titulo, subtitulo, campos = [], ok = 'Guardar',
       const form = cont.querySelector('#md-form');
       if(!form.reportValidity()) return;
       const out = {};
-      campos.forEach(c => {
-        const el = cont.querySelector('#md-' + c.k);
-        out[c.k] = el ? el.value.trim() : '';
-      });
+     campos.forEach(c => {
+          if(c.t === 'multi'){
+            out[c.k] = Array.from(
+              cont.querySelectorAll('#md-' + c.k + ' input:checked'))
+              .map(x => x.value);
+            return;
+          }
+          const el = cont.querySelector('#md-' + c.k);
+          out[c.k] = el ? el.value.trim() : '';
+        });
       cerrar(out);
     };
     cont.querySelector('#md-si').onclick = enviar;
