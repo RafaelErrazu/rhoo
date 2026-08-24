@@ -22,6 +22,7 @@ as $$
 declare
   e public.empleados;
   v_yo uuid;
+  v_propio boolean;
 begin
   select empleado_id into v_yo from public.perfiles where id = auth.uid();
 
@@ -31,17 +32,17 @@ begin
     return jsonb_build_object('status','error','message','No encontrado');
   end if;
 
-  -- Se repite la regla de visibilidad de RLS: esta funcion es
-  -- SECURITY DEFINER, asi que RLS no la protege sola.
-  if not app.es_admin() and e.id <> v_yo and e.jefe_id is distinct from v_yo then
+  -- Lo propio y lo de mi equipo: solo cuenta si tengo empleado ligado. Con
+  -- v_yo nulo, comparar contra null daba true y abria cualquier expediente.
+  v_propio := v_yo is not null and (e.id = v_yo or e.jefe_id = v_yo);
+
+  if not app.es_admin() and not v_propio then
     return jsonb_build_object('status','error','message','Sin permiso');
   end if;
 
-  -- Y el alcance: un RH limitado no debe abrir el expediente de otra empresa
-  -- aunque su rol se lo permita en general. Su propio expediente y el de su
-  -- equipo siguen visibles.
-  if app.es_admin() and not app.alcanza_razon(e.razon_id)
-     and e.id <> v_yo and e.jefe_id is distinct from v_yo then
+  -- Alcance: un RH limitado no abre expedientes de otra empresa, salvo el
+  -- suyo o el de su equipo.
+  if not v_propio and not app.alcanza_razon(e.razon_id) then
     return jsonb_build_object('status','error',
       'message','Este empleado pertenece a una empresa fuera de tu alcance.');
   end if;
