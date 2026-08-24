@@ -70,7 +70,11 @@ function modal({ titulo, subtitulo, campos = [], ok = 'Guardar',
         }).join('')
       + '</form></div>'
       + '<div class="md-pie">'
-      + '<button class="btn-sec-claro" id="md-no">'+cancelar+'</button>'
+      // Sin texto no se pinta el boton: un boton vacio se ve como un bug y
+        // la gente le da clic para averiguar que hace.
+        + (cancelar
+          ? '<button class="btn-sec-claro" id="md-no">'+cancelar+'</button>'
+          : '')
       + '<button class="'+(peligro?'btn-peligro':'btn-pri')+'" id="md-si">'+ok+'</button>'
       + '</div></div>';
 
@@ -95,7 +99,8 @@ function modal({ titulo, subtitulo, campos = [], ok = 'Guardar',
     document.addEventListener('keydown', esc);
 
     cont.querySelector('.md-x').onclick = () => cerrar(null);
-    cont.querySelector('#md-no').onclick = () => cerrar(null);
+    const btnNo = cont.querySelector('#md-no');
+      if(btnNo) btnNo.onclick = () => cerrar(null);
     // Clic en el fondo, pero NO si el clic empezó dentro: arrastrar
     // para seleccionar texto y soltar afuera no debe cerrar y
     // perder lo capturado.
