@@ -17,7 +17,7 @@ async function catTurnos(refrescar){
 }
 
 /* ── Calendario ── */
-async function pintarCalendario(){
+async function tuPintarCalendarioTurnos(){
   const cont = document.getElementById('tu-cuerpo');
   cont.innerHTML = '<p class="cargando"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
 
@@ -93,9 +93,9 @@ const fechaCorta = s => new Date(s + 'T12:00')
 function calMover(d){
   _calDesde = new Date(new Date(_calDesde + 'T12:00').getTime() + d*86400000)
                 .toLocaleDateString('sv-SE');
-  pintarCalendario();
+  tuPintarCalendarioTurnos();
 }
-function calHoy(){ _calDesde = null; pintarCalendario(); }
+function calHoy(){ _calDesde = null; tuPintarCalendarioTurnos(); }
 
 /* ── Catálogo de turnos ── */
 async function pintarTurnos(){
@@ -363,7 +363,7 @@ function tuIr(tab){
   _tuTab = tab;
   document.querySelectorAll('.tu-tab').forEach(b =>
     b.classList.toggle('on', b.dataset.tab === tab));
-  if(tab === 'calendario') pintarCalendario();
+  if(tab === 'calendario') tuPintarCalendarioTurnos();
   if(tab === 'catalogo')   pintarTurnos();
 }
 
